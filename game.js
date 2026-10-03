@@ -217,6 +217,7 @@ function onOri(e) {
 /* ---------- DETECÇÃO DE MOVIMENTO ---------- */
 let free = 0;                    // contador de queda livre
 let shakes = 0, lastShake = 0;   // contador de chacoalhada
+let ultimaSacudida = 0;
 let walkingPeaks = [], lastPeak = 0;
 let walkingCool = 0, dizzyCool = 0;
 
@@ -224,27 +225,30 @@ function onMot(e) {
   const ag = e.accelerationIncludingGravity;
   const t = Date.now();
 
-  // 1. QUEDA LIVRE (usando accelerationIncludingGravity)
+  // 1. QUEDA LIVRE
   if (ag && ag.x != null) {
     gotM = 1;
     const G = Math.hypot(ag.x, ag.y, ag.z);
-
     if (G < 2.5) {
       if (++free >= 4) { free = 0; set('scared', 2500, 'Aaah, tô caindo! 😱'); }
     } else free = 0;
   }
 
-  
-     // 2. CHACOALHADA (usando magnitude — funciona em todo celular)
+  // 2. CHACOALHADA (com reset por tempo, não por decremento)
   if (ag && ag.x != null) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
-    const excess = Math.abs(G - 9.8);  // quanto se afastou da gravidade
+    const excess = Math.abs(G - 9.8);
 
-    // Chacoalhada forte = excess alto
     if (excess > 5 && t > dizzyCool) {
-      if (t - lastShake > 120) {
+      if (t - lastShake > 100) {
         lastShake = t;
-        if (++shakes >= 3) {
+        shakes++;
+
+        // Se passou muito tempo desde a última sacudida, zera
+        if (t - ultimaSacudida > 600) shakes = 0;
+        ultimaSacudida = t;
+
+        if (shakes >= 3) {
           shakes = 0;
           dizzyCool = t + 4000;
           walkingCool = t + 4000;
@@ -259,17 +263,16 @@ function onMot(e) {
       }
     }
   }
-  // 3. CAMINHADA (ritmo regular, só se não estiver tonto)
+
+  // 3. CAMINHADA
   if (ag && ag.x != null && t > walkingCool) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
-
     if (G > 13 && G < 22) {
       const interval = t - lastPeak;
       if (interval > 250 && interval < 700) {
         lastPeak = t;
         walkingPeaks.push(t);
         walkingPeaks = walkingPeaks.filter(x => t - x < 3500);
-
         if (walkingPeaks.length >= 5) {
           walkingPeaks = [];
           walkingCool = t + 8000;
@@ -279,9 +282,6 @@ function onMot(e) {
       }
     }
   }
-
-  // Reset suave do contador de shakes
-  setTimeout(() => { if (shakes > 0) shakes--; }, 600);
 }
 function startBattery() {
   if (!navigator.getBattery) return;
@@ -913,42 +913,3 @@ function mostrarAviso(nova, key) {
   };
   document.body.appendChild(aviso);
 }
-/* ============ DIAGNÓSTICO TEMPORÁRIO ============ */
-(function diag() {
-  const div = document.createElement('div');
-  div.style.cssText = `
-    position:fixed; top:20px; left:10px;
-    background:rgba(0,0,0,.85); color:#0f0;
-    font:14px monospace; padding:10px 14px;
-    border-radius:8px; z-index:99999;
-    white-space:pre; pointer-events:none;
-    line-height:1.5;
-  `;
-  div.textContent = 'aguardando sensor...';
-  document.body.appendChild(div);
-
-  let maxG = 0;
-  let maxExcess = 0;
-  let count = 0;
-
-  addEventListener('devicemotion', e => {
-    const ag = e.accelerationIncludingGravity;
-    if (!ag || ag.x == null) return;
-
-    count++;
-    const G = Math.hypot(ag.x, ag.y, ag.z);
-    const excess = Math.abs(G - 9.8);
-
-    if (G > maxG) maxG = G;
-    if (excess > maxExcess) maxExcess = excess;
-
-    div.textContent =
-      `amostras: ${count}\n` +
-      `G agora:  ${G.toFixed(2)}\n` +
-      `excess:   ${excess.toFixed(2)}\n` +
-      `─────────────\n` +
-      `MAX G:    ${maxG.toFixed(2)}\n` +
-      `MAX exc:  ${maxExcess.toFixed(2)}\n\n` +
-      `Chacoalha forte!`;
-  });
-})();
