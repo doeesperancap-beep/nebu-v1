@@ -274,18 +274,17 @@ function onMot(e) {
       }
     }
 
-    // ----- 3. CHACOALHADA (caótica) -----
-    // Aceleração alta + variação rápida de magnitude = chacoalhar
-    const delta = Math.abs(G - lastMagnitude);
-    lastMagnitude = G;
+        // ----- 3. CHACOALHADA (caótica) -----
+    // Método mais confiável: contar quando a aceleração
+    // fica MUITO diferente da gravidade normal (9.8)
+    const excess = Math.abs(G - 9.8);   // quanto se afastou da gravidade
 
-    // Chacoalhar tem mudanças bruscas de magnitude
-    if (delta > 8 && G > 10 && t > dizzyCool) {
-      if (++shakeCount >= 4) {
+    if (excess > 6 && t > dizzyCool) {  // 6 = chacoalhada forte
+      if (++shakeCount >= 3) {          // 3 picos fortes seguidos
         shakeCount = 0;
         dizzyCool = t + 4000;
-        walkingCool = t + 4000;   // bloqueia caminhada por um tempo
-        peakTimes = [];            // limpa a memória de picos
+        walkingCool = t + 4000;
+        peakTimes = [];
 
         set('dizzy', 2500, 'Tô tonta! 😵');
         setTimeout(() => {
