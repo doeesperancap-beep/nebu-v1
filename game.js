@@ -214,86 +214,76 @@ function onOri(e) {
     set('scared', 2500, 'Aaah, vou cair! 😨');
   }
 }
-/* ---------- DETECÇÃO DE MOVIMENTO (CORRIGIDA) ---------- */
-
-let free = 0;                       // queda livre
-let peakTimes = [];                 // timestamps dos picos
-let shakeCount = 0, lastShake = 0;
-let lastMagnitude = 0;
+/* ---------- DETECÇÃO DE MOVIMENTO ---------- */
+let free = 0;                    // contador de queda livre
+let shakes = 0, lastShake = 0;   // contador de chacoalhada
+let walkingPeaks = [], lastPeak = 0;
 let walkingCool = 0, dizzyCool = 0;
 
 function onMot(e) {
   const ag = e.accelerationIncludingGravity;
+  const t = Date.now();
+
+  // 1. QUEDA LIVRE (usando accelerationIncludingGravity)
   if (ag && ag.x != null) {
     gotM = 1;
     const G = Math.hypot(ag.x, ag.y, ag.z);
-    const t = Date.now();
 
-    // ----- 1. QUEDA LIVRE -----
     if (G < 2.5) {
-      if (++free >= 4) {
-        free = 0;
-        set('scared', 2500, 'Aaah, tô caindo! 😱');
-      }
+      if (++free >= 4) { free = 0; set('scared', 2500, 'Aaah, tô caindo! 😱'); }
     } else free = 0;
+  }
 
-    // ----- 2. DETECÇÃO DE CAMINHADA (ritmada) -----
-    // Caminhada = picos de magnitude, MAS com intervalos regulares (~250-700ms)
-    if (G > 12 && G < 24 && t > walkingCool) {
-      const last = peakTimes[peakTimes.length - 1];
-      const interval = last ? t - last : 0;
+  // 2. CHACOALHADA (usando acceleration SEM gravidade)
+  const a = e.acceleration;
+  if (a && a.x != null) {
+    gotM = 1;
+    const m = Math.hypot(a.x, a.y, a.z);
 
-      // Aceita só se o intervalo for "passo humano" (250-700ms)
-      if (!last || (interval > 250 && interval < 700)) {
-        peakTimes.push(t);
-        peakTimes = peakTimes.filter(x => t - x < 3500);
+    // Limite BAIXO (6 em vez de 11) — mais fácil de ativar
+    if (m > 6 && t > dizzyCool) {
+      if (t - lastShake > 100) {
+        lastShake = t;
+        if (++shakes >= 3) {
+          shakes = 0;
+          dizzyCool = t + 4000;
+          walkingCool = t + 4000;
+          walkingPeaks = [];
 
-        // Precisa de 5 picos ritmados pra confirmar caminhada
-        if (peakTimes.length >= 5) {
-          // Checa se os intervalos são regulares (pouca variação)
-          const intervals = [];
-          for (let i = 1; i < peakTimes.length; i++)
-            intervals.push(peakTimes[i] - peakTimes[i - 1]);
-          const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-          const variation = intervals.reduce((a, b) => a + Math.abs(b - avg), 0) / intervals.length;
-
-          // Se variar muito, NÃO é caminhada — é chacoalhada
-          if (variation < 150) {
-            peakTimes = [];
-            walkingCool = t + 8000;
-            wig();
-            set('curious', 3000, 'Vamos passear? 🚶');
-          } else {
-            // Ritmo irregular = chacoalhada, reseta
-            peakTimes = [];
-          }
+          set('dizzy', 2500, 'Tô tonta! 😵');
+          setTimeout(() => {
+            if (S.humor >= 50) set('angry', 2200, 'Hmpf! 😠');
+            else set('cry', 3000, 'Buáá... 😢');
+          }, 2600);
         }
-      } else if (interval < 200) {
-        // Muito rápido entre picos = chacoalhada, não caminhada
-        peakTimes = [];
-      }
-    }
-
-        // ----- 3. CHACOALHADA (caótica) -----
-    // Método mais confiável: contar quando a aceleração
-    // fica MUITO diferente da gravidade normal (9.8)
-    const excess = Math.abs(G - 9.8);   // quanto se afastou da gravidade
-
-    if (excess > 6 && t > dizzyCool) {  // 6 = chacoalhada forte
-      if (++shakeCount >= 3) {          // 3 picos fortes seguidos
-        shakeCount = 0;
-        dizzyCool = t + 4000;
-        walkingCool = t + 4000;
-        peakTimes = [];
-
-        set('dizzy', 2500, 'Tô tonta! 😵');
-        setTimeout(() => {
-          if (S.humor >= 50) set('angry', 2200, 'Hmpf! 😠');
-          else set('cry', 3000, 'Buáá... 😢');
-        }, 2600);
       }
     }
   }
+
+  // 3. CAMINHADA (ritmo regular, só se não estiver tonto)
+  if (ag && ag.x != null && t > walkingCool) {
+    const G = Math.hypot(ag.x, ag.y, ag.z);
+
+    if (G > 13 && G < 22) {
+      const interval = t - lastPeak;
+      if (interval > 250 && interval < 700) {
+        lastPeak = t;
+        walkingPeaks.push(t);
+        walkingPeaks = walkingPeaks.filter(x => t - x < 3500);
+
+        if (walkingPeaks.length >= 5) {
+          walkingPeaks = [];
+          walkingCool = t + 8000;
+          wig();
+          set('curious', 3000, 'Vamos passear? 🚶');
+        }
+      }
+    }
+  }
+
+  // Reset suave do contador de shakes
+  setTimeout(() => { if (shakes > 0) shakes--; }, 600);
+}
 
   // ----- 4. BONUS: aceleração linear (mais precisa) -----
   const a = e.acceleration;
