@@ -908,3 +908,34 @@ document.addEventListener('visibilitychange', () => {
     }
   }
 });
+/* ============ AVISO DE ATUALIZAÇÃO ============ */
+(function checkVersion() {
+  const VERSAO_KEY = 'nebula-versao-vista';
+
+  // Lê a versão que o index.html declara
+  const metaTag = document.querySelector('meta[name="version"]');
+  const versaoNova = Number(metaTag?.content || 1);
+
+  // Lê a versão que esse celular já viu
+  const versaoVista = Number(localStorage.getItem(VERSAO_KEY) || 0);
+
+  // Se o celular já viu alguma versão E ela é mais antiga que a nova...
+  if (versaoVista && versaoVista < versaoNova) {
+    mostrarAviso(versaoNova, VERSAO_KEY);
+  } else {
+    // Primeira vez — só salva
+    localStorage.setItem(VERSAO_KEY, versaoNova);
+  }
+})();
+
+function mostrarAviso(nova, key) {
+  const aviso = document.createElement('div');
+  aviso.id = 'aviso-atualizacao';
+  aviso.textContent = '✨ Nébula atualizada! Toque para recarregar';
+  aviso.onclick = () => {
+    localStorage.setItem(key, nova);
+    // Force reload, ignorando cache
+    location.reload(true);
+  };
+  document.body.appendChild(aviso);
+}
