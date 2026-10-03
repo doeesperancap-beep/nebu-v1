@@ -13,7 +13,7 @@
     10. Minigames (cesta, borboletas, banho, dança)
     11. Mundo / lugares
     12. UI (botões, painéis)
-    13. Loop principal
+    13. Loop principal + visibilitychange
    ============================================================ */
 
 /* ============ 1. UTILIDADES ============ */
@@ -42,6 +42,9 @@ let S = (() => {
   } catch { return { ...DEFAULT }; }
 })();
 
+/* Quanto tempo ficou offline (minutos) — calculado UMA vez */
+const awayAtBoot = Math.max(0, (Date.now() - S.last) / 60000);
+
 function save() {
   S.last = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch {}
@@ -63,11 +66,9 @@ function offline(min) {
   ['energia', 'fome', 'saude', 'humor'].forEach(k => S[k] = Math.max(S[k], 20));
 }
 
-(() => {
-  const away = Math.max(0, (Date.now() - S.last) / 60000);
-  offline(away);
-  S.last = Date.now();
-})();
+/* Aplica o tempo que ficou offline (roda uma vez ao abrir) */
+offline(awayAtBoot);
+S.last = Date.now();
 
 const isNight = () => { const h = new Date().getHours(); return h >= 22 || h < 6; };
 const baseMood = () =>
@@ -89,9 +90,9 @@ const thrPet = () => pm('thr') * (S.pers === 'reservada'
   ? Math.max(1, 2.5 - (S.bond || 0) * .15) : 1);
 
 const PERS = [
-  ['🥰 carinhosa'], ['🧐 curiosa'], ['😴 tranquila'],
-  ['😂 brincalhona'], ['😤 temperamental'], ['😶 reservada']
-].map(x => x[0]);
+  '🥰 carinhosa', '🧐 curiosa', '😴 tranquila',
+  '😂 brincalhona', '😤 temperamental', '😶 reservada'
+];
 
 /* ============ 4. ROSTO ============ */
 const bubble = $('bubble');
@@ -185,7 +186,6 @@ function onOri(e) {
   gotO = 1;
   const t = Date.now();
 
-  /* Detecção de balanço suave (chacoalhar levemente) */
   if (t - swT > 5000) { swT = t; sw = 0; }
   if (lastG != null) {
     const d = (e.gamma || 0) - lastG;
@@ -199,7 +199,6 @@ function onOri(e) {
     S.energia = clamp(S.energia + 6); save();
   }
 
-  /* Olhos seguem inclinação */
   const g = clamp(e.gamma || 0, -45, 45) / 45;
   const b = clamp((e.beta || 0) - 55, -40, 40) / 40;
   if (!['scared', 'dizzy'].includes(mood))
@@ -225,12 +224,10 @@ function onMot(e) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
     const t = Date.now();
 
-    /* Queda livre */
     if (G < 2.5) {
       if (++free >= 4) { free = 0; set('scared', 2500, 'Aaah, tô caindo! 😱'); }
     } else free = 0;
 
-    /* Caminhada (5 picos em 4s) */
     if (G > 13 && G < 22 && t - lastP > 280) {
       lastP = t;
       peaks = peaks.filter(x => t - x < 4000);
@@ -242,7 +239,6 @@ function onMot(e) {
     }
   }
 
-  /* Chacoalhada forte -> tontura */
   const a = e.acceleration;
   if (a && a.x != null) gotM = 1;
   const m = a && a.x != null ? Math.hypot(a.x, a.y, a.z) : 0;
@@ -285,7 +281,7 @@ addEventListener('online',  () => set('happy', 2500, 'Voltou a internet! 📶'))
 const ptrs = new Map();
 let sx = null, sy = null, moved = 0, petD = 0, rev = 0, lastDx = 0;
 let lastX = 0, lastY = 0, pinch0 = 0, multi = 0, pinched = 0, tMulti = 0;
-let hold, taps = [], lastTap = 0, petGain = 0, lastAct = Date.now(), stage = 0;
+let hold, taps = [], lastAct = Date.now(), stage = 0;
 
 const dist = () => {
   const p = [...ptrs.values()];
@@ -312,7 +308,7 @@ addEventListener('pointerdown', e => {
   if (ptrs.size === 1) {
     sx = lastX = e.clientX;
     sy = lastY = e.clientY;
-    moved = 0; petD = 0; rev = 0; multi = 0; pinched = 0; petGain = 0;
+    moved = 0; petD = 0; rev = 0; multi = 0; pinched = 0;
     hold = setTimeout(() => {
       if (!moved) {
         const dx = (sx < innerWidth / 2 ? 1 : -1) * 40;
@@ -358,18 +354,15 @@ addEventListener('pointermove', e => {
     if (rev >= 12) {
       rev = 0; wig();
       pet('tickle', 'Hahaha, cócegas! 🤣');
-      if (!petGain) { petGain = 1; S.humor = clamp(S.humor + 4); }
+      S.humor = clamp(S.humor + 4);
     } else if (petD > 700 * pm('thr')) {
       pet('carinho', 'Ronrom... 😍');
       heart(e.clientX, e.clientY);
     } else if (petD > 120 * thrPet()) {
       pet('happy', '');
       heart(e.clientX, e.clientY);
-      if (!petGain) {
-        petGain = 1;
-        S.bond = (S.bond || 0) + 1;
-        S.humor = clamp(S.humor + 5 * pm('pet'));
-      }
+      S.bond = (S.bond || 0) + 1;
+      S.humor = clamp(S.humor + 5 * pm('pet'));
     }
   }
 });
@@ -436,6 +429,7 @@ setInterval(() => {
 
 /* ============ 8. COMIDA ============ */
 const FOODS = ['🍎', '🍓', '🥒', '🍌'];
+let lastTray = 0;
 
 function prefs() {
   const c = Object.keys(S.food || {}).filter(k => S.food[k] > 2);
@@ -501,8 +495,6 @@ function xarope() {
   $('bXarope').style.display = 'none';
   save();
 }
-
-let lastTray = 0;
 
 /* ============ 10. MINIGAMES ============ */
 let gOn = 0, gx = .5;
@@ -664,12 +656,12 @@ function startBath() {
 
 /* --- Dança --- */
 const STY = {
-  festa:       ['🪩', 'hop .35s', 'top:-50%;left:50%;transform:translateX(-50%)', 'Festa! 🪩'],
-  fofa:        ['🎀', 'sway 1.3s', 'top:-42%;right:6%', 'Dancinha fofa 🥰'],
-  estrela:     ['🕶️', 'posea 1.8s', 'top:-2%;left:50%;transform:translateX(-50%);font-size:calc(var(--ew)*2)', 'Show! 😎'],
-  chocalho:    ['🪇', 'shk .25s', 'top:25%;left:104%', 'Chocalho! 🎶'],
-  maluquinha:  ['🎉', 'crz 1.4s', 'top:-50%;left:50%;transform:translateX(-50%)', 'Maluquinha! 🤪'],
-  calminha:    ['🌙', 'flt 3s', 'top:-45%;left:-4%', 'Calminha... 🌙']
+  festa:      ['🪩', 'hop .35s', 'top:-50%;left:50%;transform:translateX(-50%)', 'Festa! 🪩'],
+  fofa:       ['🎀', 'sway 1.3s', 'top:-42%;right:6%', 'Dancinha fofa 🥰'],
+  estrela:    ['🕶️', 'posea 1.8s', 'top:-2%;left:50%;transform:translateX(-50%);font-size:calc(var(--ew)*2)', 'Show! 😎'],
+  chocalho:   ['🪇', 'shk .25s', 'top:25%;left:104%', 'Chocalho! 🎶'],
+  maluquinha: ['🎉', 'crz 1.4s', 'top:-50%;left:50%;transform:translateX(-50%)', 'Maluquinha! 🤪'],
+  calminha:   ['🌙', 'flt 3s', 'top:-45%;left:-4%', 'Calminha... 🌙']
 };
 const DW = {
   carinhosa:     { fofa: 5, calminha: 2 },
@@ -834,14 +826,11 @@ if (!S.pers) setTimeout(persPanel, 800);
 /* Saudação inicial */
 (() => {
   const d = new Date(), h = d.getHours(), k = d.toDateString();
-  if (away > (S.pers === 'carinhosa' ? 60 : 180)) say('Que saudade! 💗');
+  if (awayAtBoot > (S.pers === 'carinhosa' ? 60 : 180)) say('Que saudade! 💗');
   else if (S.greet !== k && h >= 6 && h < 12) { S.greet = k; say('Bom dia! ☀️'); }
   else if (isNight()) say('Boa noite... 😴');
   if (!navigator.onLine) say('Sem internet... 📵');
 })();
-
-let away = 0;
-try { away = (Date.now() - (S.last || Date.now())) / 60000; } catch {}
 
 setInterval(() => {
   decay(5 / 60);
@@ -853,18 +842,19 @@ setInterval(() => {
     set(baseMood(), 0);
 }, 5000);
 
-/* ============ VISIBILITY: pausa quando a aba está escondida ============ */
+/* Pausa quando a aba fica escondida */
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     hiddenAt = Date.now();
   } else {
     if (hiddenAt) {
-      const away = (Date.now() - hiddenAt) / 60000;
-      offline(away);
+      const m = (Date.now() - hiddenAt) / 60000;
+      offline(m);
       S.last = Date.now();
       save();
       set(baseMood(), 0);
+      hiddenAt = 0;
     }
   }
 });
