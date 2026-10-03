@@ -25,6 +25,65 @@ const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
 const vib = p => { try { navigator.vibrate?.(p); } catch {} };
 
+/* ============ 1.5 SISTEMA DE SOM ============ */
+const SOM = (() => {
+  let ctx = null;
+  let ligado = true;
+
+  function init() {
+    if (ctx) return;
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch { ligado = false; }
+  }
+
+  function nota(freq, dur = 0.12, tipo = 'sine', vol = 0.12) {
+    if (!ligado) return;
+    init();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = tipo;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch {}
+  }
+
+  function melodia(notas, dur = 0.1, tipo = 'sine', vol = 0.12) {
+    if (!ligado) return;
+    notas.forEach((f, i) => {
+      setTimeout(() => nota(f, dur, tipo, vol), i * dur * 1000);
+    });
+  }
+
+  function ligar(v) { ligado = v; }
+  function estaLigado() { return ligado; }
+  function destravar() {
+    init();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+
+  return { nota, melodia, ligar, estaLigado, destravar };
+})();
+
+/* Notas musicais */
+const N = {
+  DO: 523.25, RE: 587.33, MI: 659.25, FA: 698.46,
+  SOL: 783.99, LA: 880.00, SI: 987.77, DO2: 1046.50,
+  DO_BAIXO: 261.63, MI_BAIXO: 329.63, SOL_BAIXO: 392.00
+};
+
+/* Destrava áudio no primeiro toque (iOS/Chrome) */
+addEventListener('pointerdown', () => SOM.destravar(), { once: true });
+
 /* ============ 2. ESTADO ============ */
 const SAVE_KEY = 'nebula-v2';
 const DEFAULT = {
@@ -254,9 +313,11 @@ function onMot(e) {
           walkingCool = t + 4000;
           walkingPeaks = [];
 
+              SOM.melodia([N.LA, N.FA, N.RE, N.DO_BAIXO], 0.1, 'sine', 0.1);
           set('dizzy', 2500, 'Tô tonta! 😵');
           setTimeout(() => {
-            if (S.humor >= 50) set('angry', 2200, 'Hmpf! 😠');
+            if (S.humor >= 50)  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.1);
+    set('angry', 2500, 'Para! 😠');
             else set('cry', 3000, 'Buáá... 😢');
           }, 2600);
         }
@@ -383,7 +444,8 @@ addEventListener('pointermove', e => {
       pet('carinho', 'Ronrom... 😍');
       heart(e.clientX, e.clientY);
     } else if (petD > 120 * thrPet()) {
-      pet('happy', '');
+      SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.08);
+      pet('happy', '');;
       heart(e.clientX, e.clientY);
       S.bond = (S.bond || 0) + 1;
       S.humor = clamp(S.humor + 5 * pm('pet'));
@@ -480,6 +542,7 @@ function eat(f) {
     S.humor = clamp(S.humor + 2);
     set('happy', 2000, 'Nham! ' + f);
   }
+     SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
   save();
 }
 
@@ -616,7 +679,8 @@ function startButterflies() {
       clearInterval(iv); c.remove(); gOn = 0;
       S.humor = clamp(S.humor + Math.min(25, score * 3 * pm('play')));
       S.energia = clamp(S.energia - 4);
-      say('Capturou ' + score + ' 🦋✨');
+            SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.1);
+      say('Fez ' + score + ' pontos! 🏆');
       if (score >= 8) startDance(6); else set('happy', 3000);
       save();
     }
