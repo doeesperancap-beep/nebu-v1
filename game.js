@@ -284,21 +284,6 @@ function onMot(e) {
   // Reset suave do contador de shakes
   setTimeout(() => { if (shakes > 0) shakes--; }, 600);
 }
-
-  // ----- 4. BONUS: aceleração linear (mais precisa) -----
-  const a = e.acceleration;
-  if (a && a.x != null) {
-    gotM = 1;
-    const m = Math.hypot(a.x, a.y, a.z);
-    // Aceleração linear (sem gravidade) alta = movimento brusco
-    if (m > 15 && Date.now() > dizzyCool) {
-      // Reforço da detecção de chacoalhada
-    }
-  }
-
-  // Reset passivo do contador de shakes
-  setTimeout(() => { if (shakeCount > 0) shakeCount--; }, 800);
-}
 function startBattery() {
   if (!navigator.getBattery) return;
   navigator.getBattery().then(b => {
