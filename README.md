@@ -88,7 +88,7 @@ Cada pessoa do grupo pode ficar responsável por uma ou duas seções.
 
 ## 👥 Time
 
-Projeto feito em grupo na aula de Robótica. *(adicionem os nomes aqui!)*
+Projeto feito em grupo na aula de Robótica. *(ana alice, eloa, vitoria, lya, m.alice)*
 
 ---
 
