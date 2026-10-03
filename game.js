@@ -315,7 +315,7 @@ function onMot(e) {
 
               SOM.melodia([N.LA, N.FA, N.RE, N.DO_BAIXO], 0.1, 'sine', 0.1);
           set('dizzy', 2500, 'Tô tonta! 😵');
-                    setTimeout(() => {
+                     setTimeout(() => {
             if (S.humor >= 50) {
               SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.1);
               set('angry', 2500, 'Para! 😠');
@@ -683,7 +683,7 @@ function startButterflies() {
       S.humor = clamp(S.humor + Math.min(25, score * 3 * pm('play')));
       S.energia = clamp(S.energia - 4);
             SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.1);
-      say('Fez ' + score + ' pontos! 🏆');
+            say('Capturou ' + score + ' 🦋✨');
       if (score >= 8) startDance(6); else set('happy', 3000);
       save();
     }
