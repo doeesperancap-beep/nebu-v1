@@ -198,3 +198,28 @@ body[data-m=dizzy] .eye {
   100% { transform: rotate(360deg); }
 }
 @keyframes flt    { 0%,100% { transform: translateY(-8px); } 50% { transform: translateY(10px); } }
+
+/* ---------- Aviso de atualização ---------- */
+#aviso-atualizacao {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f7d9e4;
+  color: #1b1824;
+  padding: 14px 22px;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 500;
+  z-index: 100;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(247, 217, 228, .5);
+  animation: pulse-aviso 1.6s ease-in-out infinite;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@keyframes pulse-aviso {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50%      { transform: translateX(-50%) scale(1.06); }
+}
