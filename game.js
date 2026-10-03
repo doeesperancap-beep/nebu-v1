@@ -234,15 +234,15 @@ function onMot(e) {
     } else free = 0;
   }
 
-  // 2. CHACOALHADA (usando acceleration SEM gravidade)
-  const a = e.acceleration;
-  if (a && a.x != null) {
-    gotM = 1;
-    const m = Math.hypot(a.x, a.y, a.z);
+  
+     // 2. CHACOALHADA (usando magnitude — funciona em todo celular)
+  if (ag && ag.x != null) {
+    const G = Math.hypot(ag.x, ag.y, ag.z);
+    const excess = Math.abs(G - 9.8);  // quanto se afastou da gravidade
 
-    // Limite BAIXO (6 em vez de 11) — mais fácil de ativar
-    if (m > 6 && t > dizzyCool) {
-      if (t - lastShake > 100) {
+    // Chacoalhada forte = excess alto
+    if (excess > 5 && t > dizzyCool) {
+      if (t - lastShake > 120) {
         lastShake = t;
         if (++shakes >= 3) {
           shakes = 0;
@@ -259,7 +259,6 @@ function onMot(e) {
       }
     }
   }
-
   // 3. CAMINHADA (ritmo regular, só se não estiver tonto)
   if (ag && ag.x != null && t > walkingCool) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
