@@ -214,8 +214,13 @@ function onOri(e) {
     set('scared', 2500, 'Aaah, vou cair! 😨');
   }
 }
+/* ---------- DETECÇÃO DE MOVIMENTO (CORRIGIDA) ---------- */
 
-let free = 0, lastP = 0, peaks = [], shakes = 0, lastShake = 0;
+let free = 0;                       // queda livre
+let peakTimes = [];                 // timestamps dos picos
+let shakeCount = 0, lastShake = 0;
+let lastMagnitude = 0;
+let walkingCool = 0, dizzyCool = 0;
 
 function onMot(e) {
   const ag = e.accelerationIncludingGravity;
@@ -224,30 +229,64 @@ function onMot(e) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
     const t = Date.now();
 
+    // ----- 1. QUEDA LIVRE -----
     if (G < 2.5) {
-      if (++free >= 4) { free = 0; set('scared', 2500, 'Aaah, tô caindo! 😱'); }
+      if (++free >= 4) {
+        free = 0;
+        set('scared', 2500, 'Aaah, tô caindo! 😱');
+      }
     } else free = 0;
 
-    if (G > 13 && G < 22 && t - lastP > 280) {
-      lastP = t;
-      peaks = peaks.filter(x => t - x < 4000);
-      peaks.push(t);
-      if (peaks.length >= 5) {
-        peaks = []; wig();
-        set('curious', 3000, 'Vamos passear? 🚶');
+    // ----- 2. DETECÇÃO DE CAMINHADA (ritmada) -----
+    // Caminhada = picos de magnitude, MAS com intervalos regulares (~250-700ms)
+    if (G > 12 && G < 24 && t > walkingCool) {
+      const last = peakTimes[peakTimes.length - 1];
+      const interval = last ? t - last : 0;
+
+      // Aceita só se o intervalo for "passo humano" (250-700ms)
+      if (!last || (interval > 250 && interval < 700)) {
+        peakTimes.push(t);
+        peakTimes = peakTimes.filter(x => t - x < 3500);
+
+        // Precisa de 5 picos ritmados pra confirmar caminhada
+        if (peakTimes.length >= 5) {
+          // Checa se os intervalos são regulares (pouca variação)
+          const intervals = [];
+          for (let i = 1; i < peakTimes.length; i++)
+            intervals.push(peakTimes[i] - peakTimes[i - 1]);
+          const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+          const variation = intervals.reduce((a, b) => a + Math.abs(b - avg), 0) / intervals.length;
+
+          // Se variar muito, NÃO é caminhada — é chacoalhada
+          if (variation < 150) {
+            peakTimes = [];
+            walkingCool = t + 8000;
+            wig();
+            set('curious', 3000, 'Vamos passear? 🚶');
+          } else {
+            // Ritmo irregular = chacoalhada, reseta
+            peakTimes = [];
+          }
+        }
+      } else if (interval < 200) {
+        // Muito rápido entre picos = chacoalhada, não caminhada
+        peakTimes = [];
       }
     }
-  }
 
-  const a = e.acceleration;
-  if (a && a.x != null) gotM = 1;
-  const m = a && a.x != null ? Math.hypot(a.x, a.y, a.z) : 0;
-  if (m > 11) {
-    const t = Date.now();
-    if (t - lastShake > 120) {
-      lastShake = t;
-      if (++shakes >= 3) {
-        shakes = 0;
+    // ----- 3. CHACOALHADA (caótica) -----
+    // Aceleração alta + variação rápida de magnitude = chacoalhar
+    const delta = Math.abs(G - lastMagnitude);
+    lastMagnitude = G;
+
+    // Chacoalhar tem mudanças bruscas de magnitude
+    if (delta > 8 && G > 10 && t > dizzyCool) {
+      if (++shakeCount >= 4) {
+        shakeCount = 0;
+        dizzyCool = t + 4000;
+        walkingCool = t + 4000;   // bloqueia caminhada por um tempo
+        peakTimes = [];            // limpa a memória de picos
+
         set('dizzy', 2500, 'Tô tonta! 😵');
         setTimeout(() => {
           if (S.humor >= 50) set('angry', 2200, 'Hmpf! 😠');
@@ -256,9 +295,21 @@ function onMot(e) {
       }
     }
   }
-  setTimeout(() => shakes = 0, 1000);
-}
 
+  // ----- 4. BONUS: aceleração linear (mais precisa) -----
+  const a = e.acceleration;
+  if (a && a.x != null) {
+    gotM = 1;
+    const m = Math.hypot(a.x, a.y, a.z);
+    // Aceleração linear (sem gravidade) alta = movimento brusco
+    if (m > 15 && Date.now() > dizzyCool) {
+      // Reforço da detecção de chacoalhada
+    }
+  }
+
+  // Reset passivo do contador de shakes
+  setTimeout(() => { if (shakeCount > 0) shakeCount--; }, 800);
+}
 function startBattery() {
   if (!navigator.getBattery) return;
   navigator.getBattery().then(b => {
