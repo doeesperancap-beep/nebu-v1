@@ -315,10 +315,13 @@ function onMot(e) {
 
               SOM.melodia([N.LA, N.FA, N.RE, N.DO_BAIXO], 0.1, 'sine', 0.1);
           set('dizzy', 2500, 'Tô tonta! 😵');
-          setTimeout(() => {
-            if (S.humor >= 50)  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.1);
-    set('angry', 2500, 'Para! 😠');
-            else set('cry', 3000, 'Buáá... 😢');
+                    setTimeout(() => {
+            if (S.humor >= 50) {
+              SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.1);
+              set('angry', 2500, 'Para! 😠');
+            } else {
+              set('cry', 3000, 'Buáá... 😢');
+            }
           }, 2600);
         }
       }
@@ -445,7 +448,7 @@ addEventListener('pointermove', e => {
       heart(e.clientX, e.clientY);
     } else if (petD > 120 * thrPet()) {
       SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.08);
-      pet('happy', '');;
+      pet('happy', '');
       heart(e.clientX, e.clientY);
       S.bond = (S.bond || 0) + 1;
       S.humor = clamp(S.humor + 5 * pm('pet'));
