@@ -239,16 +239,16 @@ function onMot(e) {
     const G = Math.hypot(ag.x, ag.y, ag.z);
     const excess = Math.abs(G - 9.8);
 
-    if (excess > 5 && t > dizzyCool) {
+    if (excess > 20 && t > dizzyCool) {
       if (t - lastShake > 100) {
         lastShake = t;
         shakes++;
 
         // Se passou muito tempo desde a última sacudida, zera
-        if (t - ultimaSacudida > 600) shakes = 0;
+       if (t - ultimaSacudida > 300) shakes = 0;
         ultimaSacudida = t;
 
-        if (shakes >= 3) {
+        if (shakes >= 5) {
           shakes = 0;
           dizzyCool = t + 4000;
           walkingCool = t + 4000;
