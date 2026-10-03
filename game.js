@@ -913,3 +913,42 @@ function mostrarAviso(nova, key) {
   };
   document.body.appendChild(aviso);
 }
+/* ============ DIAGNÓSTICO TEMPORÁRIO ============ */
+(function diag() {
+  const div = document.createElement('div');
+  div.style.cssText = `
+    position:fixed; top:20px; left:10px;
+    background:rgba(0,0,0,.85); color:#0f0;
+    font:14px monospace; padding:10px 14px;
+    border-radius:8px; z-index:99999;
+    white-space:pre; pointer-events:none;
+    line-height:1.5;
+  `;
+  div.textContent = 'aguardando sensor...';
+  document.body.appendChild(div);
+
+  let maxG = 0;
+  let maxExcess = 0;
+  let count = 0;
+
+  addEventListener('devicemotion', e => {
+    const ag = e.accelerationIncludingGravity;
+    if (!ag || ag.x == null) return;
+
+    count++;
+    const G = Math.hypot(ag.x, ag.y, ag.z);
+    const excess = Math.abs(G - 9.8);
+
+    if (G > maxG) maxG = G;
+    if (excess > maxExcess) maxExcess = excess;
+
+    div.textContent =
+      `amostras: ${count}\n` +
+      `G agora:  ${G.toFixed(2)}\n` +
+      `excess:   ${excess.toFixed(2)}\n` +
+      `─────────────\n` +
+      `MAX G:    ${maxG.toFixed(2)}\n` +
+      `MAX exc:  ${maxExcess.toFixed(2)}\n\n` +
+      `Chacoalha forte!`;
+  });
+})();
