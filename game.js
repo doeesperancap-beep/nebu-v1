@@ -945,16 +945,22 @@ function iniciarModo() {
 }
 /* ============ CIDADE ============ */
 const CIDADE_PREDIOS = {
-  jogos:        { x: 14, y: 20, w: 18, h: 18, nome: '🎮 Jogos Central', fala: 'Hora de brincar! 🎮' },
-  biblioteca:   { x: 34, y: 20, w: 18, h: 18, nome: '📚 Biblioteca',    fala: 'Vou ler um livro! 📚' },
-  boutique:     { x: 54, y: 20, w: 18, h: 18, nome: '👗 Boutique',      fala: 'Roupinhas! 👗' },
-  mercado:      { x: 76, y: 20, w: 18, h: 18, nome: '🛒 Mercado',       fala: 'Vou comprar frutinhas! 🍎' },
-  clinica:      { x: 14, y: 55, w: 15, h: 15, nome: '🏥 Clínica',       fala: 'Vou me cuidar! 🏥' },
-  spa:          { x: 34, y: 55, w: 15, h: 15, nome: '💆 Spa',           fala: 'Aaah, que delícia! 🥒' },
-  observatorio: { x: 54, y: 55, w: 15, h: 15, nome: '🔭 Observatório',  fala: 'Ver estrelas! 🔭' },
-  parque:       { x: 76, y: 55, w: 18, h: 18, nome: '🌳 Parque',        fala: 'Vou passear! 🌳' }
-};
+  // Fileira de cima (prédios altos)
+  jogos:        { x: 7,  y: 15, w: 20, h: 30, nome: '🎮 Jogos Central', fala: 'Hora de brincar! 🎮' },
+  biblioteca:   { x: 29, y: 15, w: 20, h: 30, nome: '📚 Biblioteca',    fala: 'Vou ler um livro! 📚' },
+  boutique:     { x: 50, y: 15, w: 20, h: 30, nome: '👗 Boutique',      fala: 'Roupinhas! 👗' },
+  mercado:      { x: 72, y: 15, w: 22, h: 30, nome: '🛒 Mercado',       fala: 'Vou comprar frutinhas! 🍎' },
 
+  // Meio (parque, borboletas, área verde)
+  borboletas:   { x: 13, y: 55, w: 20, h: 18, nome: '🦋 Espaço Borboletas', fala: 'Borboletas! 🦋' },
+  parque:       { x: 36, y: 52, w: 26, h: 20, nome: '🌳 Parque',            fala: 'Vou passear! 🌳' },
+  praca:        { x: 66, y: 55, w: 22, h: 18, nome: '🌿 Área Verde',        fala: 'Que calmo aqui...' },
+
+  // Fileira de baixo (prédios pequenos)
+  clinica:      { x: 13, y: 88, w: 15, h: 11, nome: '🏥 Clínica',       fala: 'Vou me cuidar! 🏥' },
+  spa:          { x: 38, y: 88, w: 15, h: 11, nome: '💆 Spa',           fala: 'Aaah, que delícia! 🥒' },
+  observatorio: { x: 59, y: 88, w: 15, h: 11, nome: '🔭 Observatório',  fala: 'Ver estrelas! 🔭' }
+};
 const NEBO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340">
   <defs><radialGradient id="g-lavanda" gradientUnits="userSpaceOnUse" cx="200" cy="175" r="190"><stop offset="0" stop-color="#D8D2F2"/><stop offset=".55" stop-color="#D8D2F2"/><stop offset="1" stop-color="#9A8FD0"/></radialGradient></defs>
   <g fill="#5D4F9E" stroke="#5D4F9E" stroke-width="7" stroke-linejoin="round"><circle cx="150" cy="80" r="50"/><circle cx="230" cy="70" r="52"/><circle cx="300" cy="105" r="46"/><circle cx="345" cy="165" r="48"/><circle cx="335" cy="235" r="50"/><circle cx="270" cy="275" r="52"/><circle cx="190" cy="285" r="54"/><circle cx="110" cy="270" r="50"/><circle cx="65" cy="215" r="48"/><circle cx="60" cy="150" r="48"/><circle cx="95" cy="100" r="46"/><ellipse cx="200" cy="178" rx="140" ry="100"/></g>
