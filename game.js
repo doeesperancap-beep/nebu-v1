@@ -123,6 +123,36 @@ function save() {
   S.last = Date.now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch {}
 }
+/* ============ SISTEMA DE MOEDAS ============ */
+function ganharMoedas(qtd) {
+  if (!qtd) return;
+  S.moedas = (S.moedas || 0) + qtd;
+  save();
+  mostrarMoedas(qtd);
+}
+
+function mostrarMoedas(qtd) {
+  const toast = document.createElement('div');
+  toast.textContent = `🪙 +${qtd}`;
+  toast.style.cssText = `
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f7d9e4;
+    color: #1b1824;
+    padding: 10px 20px;
+    border-radius: 22px;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 4px 20px rgba(247,217,228,.5);
+    animation: moedaSobe 1.6s ease-out forwards;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 1600);
+}
 
 function decay(min, mul = 1) {
   if (!Number.isFinite(min) || min <= 0) return;
