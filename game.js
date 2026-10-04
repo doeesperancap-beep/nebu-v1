@@ -186,11 +186,17 @@ const DEFAULT = {
   food: {}, pref: null, dis: null,
   places: {}, mem: [], lastDance: null,
   estoque: { '🍎': 3, '🍓': 2, '🥭': 1, '🍕': 0, '🍰': 0 },
-  favoritas: [],      // ← NOVO (3 comidas)
-  detestadas: [],     // ← NOVO (3 comidas)
+  favoritas: [],
+  detestadas: [],
+  compras: [],           // ← NOVO (itens já comprados)
+  equipado: {            // ← NOVO (o que tá usando agora)
+    cabeca: null,
+    oculos: null,
+    olhos: null,
+    fundo: null
+  },
   last: Date.now()
 };
-
 /* ============ GERAR PREFERÊNCIAS ============ */
 function gerarPreferencias() {
   // Lista todas as comidas do catálogo
@@ -366,6 +372,76 @@ function heart(x, y) {
 function look(x, y) {
   eyes.style.transform =
     `translate(${(x / innerWidth - .5) * 60}px, ${(y / innerHeight - .5) * 34}px)`;
+}
+/* ============ APLICAR VISUAL DA BOUTIQUE ============ */
+function aplicarVisual() {
+  // Remove emojis antigos de cabeça e óculos
+  document.querySelectorAll('.acessorio-nebo').forEach(e => e.remove());
+
+  // Pega o que tá equipado
+  const eq = S.equipado || {};
+
+  // 1. Acessório de cabeça (canto superior direito)
+  if (eq.cabeca) {
+    const el = document.createElement('div');
+    el.className = 'acessorio-nebo';
+    el.textContent = eq.cabeca;
+    el.style.cssText = `
+      position: absolute;
+      top: -20px;
+      right: -30px;
+      font-size: calc(var(--ew) * 0.5);
+      z-index: 10;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    `;
+    document.getElementById('face').appendChild(el);
+  }
+
+  // 2. Óculos (em cima dos olhos)
+  if (eq.oculos) {
+    const el = document.createElement('div');
+    el.className = 'acessorio-nebo';
+    el.textContent = eq.oculos;
+    el.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: calc(var(--ew) * 1.8);
+      z-index: 11;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    `;
+    document.getElementById('eyes').appendChild(el);
+  }
+
+  // 3. Cor dos olhos + boca
+  if (eq.olhos) {
+    const cor = BOUTIQUE.olhos[eq.olhos]?.cor;
+    if (cor) {
+      document.documentElement.style.setProperty('--eye', cor);
+    }
+  } else {
+    // Volta ao padrão
+    document.documentElement.style.setProperty('--eye', '#f7d9e4');
+  }
+
+  // 4. Fundo da tela
+  if (eq.fundo) {
+    const cor = BOUTIQUE.fundo[eq.fundo]?.cor;
+    if (cor) {
+      document.body.style.background = cor;
+      // Adiciona estrelinhas se for fundo especial
+      if (eq.fundo === '🌌' || eq.fundo === '🌠' || eq.fundo === '🌉') {
+        document.body.style.background = `${cor} radial-gradient(circle at 30% 30%, #ffffff22 0 1px, transparent 2px), radial-gradient(circle at 70% 60%, #ffffff22 0 1px, transparent 2px), radial-gradient(circle at 50% 80%, #ffffff22 0 1px, transparent 2px), ${cor}`;
+        document.body.style.backgroundSize = '200px 200px, 300px 300px, 150px 150px, auto';
+      }
+    }
+  } else {
+    document.body.style.background = '#000';
+    document.body.style.backgroundImage = 'none';
+  }
 }
 function resetLook() { eyes.style.transform = ''; }
 
@@ -827,6 +903,40 @@ function foodTray() {
     }).join('')
   );
 }
+/* ============ CATÁLOGO DA BOUTIQUE ============ */
+const BOUTIQUE = {
+  cabeca: {
+    '🌸': { nome: 'Flor',          preco: 10 },
+    '🌺': { nome: 'Hibisco',       preco: 12 },
+    '❄️': { nome: 'Floco de neve', preco: 10 },
+    '🎀': { nome: 'Laço',          preco: 8  },
+    '👒': { nome: 'Chapéu',        preco: 20 },
+    '🧙': { nome: 'Chapéu de bruxa', preco: 25 },
+    '🎃': { nome: 'Abóbora',       preco: 15 },
+    '👻': { nome: 'Fantasma',      preco: 15 },
+    '🦇': { nome: 'Morcego',       preco: 15 },
+    '🎉': { nome: 'Chapéu de festa', preco: 20 },
+    '🎈': { nome: 'Balão',         preco: 15 },
+    '🎁': { nome: 'Presente',      preco: 18 }
+  },
+  oculos: {
+    '🕶️': { nome: 'Óculos de sol',   preco: 25 },
+    '👓': { nome: 'Óculos de grau', preco: 20 },
+    '🥽': { nome: 'Óculos de natação', preco: 22 }
+  },
+  olhos: {
+    '🍑': { nome: 'Pêssego rosado', preco: 30, cor: '#F4A99B' },
+    '💜': { nome: 'Azul-lavanda',   preco: 30, cor: '#919CCB' },
+    '🌊': { nome: 'Turquesa',       preco: 30, cor: '#70BEC6' },
+    '🥛': { nome: 'Creme',          preco: 30, cor: '#E8E0C3' },
+    '🌿': { nome: 'Verde-menta',    preco: 30, cor: '#93CBB7' }
+  },
+  fundo: {
+    '🌌': { nome: 'Galáxia',           preco: 80, cor: '#1a0d2e' },
+    '🌠': { nome: 'Nebulosa de Órion', preco: 80, cor: '#2a0a1a' },
+    '🌉': { nome: 'Via Láctea',        preco: 80, cor: '#0a0a2e' }
+  }
+};
 /* ============ 9. DOENÇA / XAROPE ============ */
 function sickTick() {
   const n = Date.now();
@@ -1194,6 +1304,7 @@ function mundo() {
       '<h3>✨ Nébula City</h3>' +
       `<p style="font-size:13px;opacity:.7;margin:0 0 12px">Conectada! Escolha onde ir:</p>` +
       '<button data-x="loja" style="font-size:16px;padding:14px">🛒 Mercado</button>' +
+      '<button data-x="boutique" style="font-size:16px;padding:14px">👗 Boutique</button>' +
       '<button data-x="spa" style="font-size:16px;padding:14px">💆 Spa</button>' +
       '<button data-x="clinica" style="font-size:16px;padding:14px">🏥 Clínica</button>' +
       '<button data-x="biblioteca" style="font-size:16px;padding:14px">📚 Biblioteca</button>' +
@@ -1850,6 +1961,7 @@ P.onclick = e => {
   else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
   else if (d.x === 'parque')      { P.classList.remove('on'); painelParque(); }
   else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
+  else if (d.x === 'boutique')    { P.classList.remove('on'); painelBoutique(); }
 
   // Coisas antigas
   else if (d.x === 'food') foodTray();
@@ -1862,6 +1974,165 @@ P.onclick = e => {
   else if (d.g === 'b') startButterflies();
   else if (d.x === 'dance') { P.classList.remove('on'); startDance(10); }
 };
+/* ============ BOUTIQUE ============ */
+let abaAtual = 'cabeca';
+
+function painelBoutique() {
+  renderBoutique();
+}
+
+function renderBoutique() {
+  const abas = {
+    cabeca: { emoji: '🌸', nome: 'Cabeça' },
+    oculos: { emoji: '🕶️', nome: 'Óculos' },
+    olhos:  { emoji: '🎨', nome: 'Olhos'  },
+    fundo:  { emoji: '🌌', nome: 'Fundos' }
+  };
+
+  // Botões das abas
+  let html = '<h3>👗 Boutique</h3>';
+  html += `<p style="font-size:13px;opacity:.7;margin:0 0 8px">Você tem: 🪙 ${S.moedas || 0}</p>`;
+
+  // Abas
+  html += '<div style="display:flex;gap:6px;margin:12px 0">';
+  for (const [id, info] of Object.entries(abas)) {
+    const ativo = abaAtual === id;
+    html += `<button data-aba="${id}" style="
+      flex:1;padding:10px 4px;font-size:12px;
+      background:${ativo ? '#f7d9e4' : '#ffffff1a'};
+      color:${ativo ? '#1b1824' : '#fff'};
+      border:0;border-radius:10px;cursor:pointer;
+    ">${info.emoji}<br>${info.nome}</button>`;
+  }
+  html += '</div>';
+
+  // Itens da aba atual
+  const itens = BOUTIQUE[abaAtual] || {};
+  const comprados = S.compras || [];
+  const equipado = S.equipado || {};
+
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+
+  for (const [emoji, item] of Object.entries(itens)) {
+    const comprado = comprados.includes(emoji);
+    const usando = equipado[abaAtual] === emoji;
+
+    html += `
+      <div class="item-boutique" data-item="${emoji}" data-aba="${abaAtual}" style="
+        background:${usando ? '#f7d9e4' : (comprado ? '#ffffff33' : '#ffffff1a')};
+        border-radius:12px;padding:10px 4px;
+        text-align:center;cursor:pointer;
+        border:2px solid ${usando ? '#f7d9e4' : 'transparent'};
+        position:relative;
+      ">
+        <div style="font-size:28px">${emoji}</div>
+        <div style="font-size:10px;opacity:.7;margin-top:2px">${item.nome}</div>
+        <div style="font-size:11px;font-weight:bold;margin-top:4px;color:${usando ? '#1b1824' : '#fff'}">
+          ${usando ? '✓ USANDO' : (comprado ? 'EQUIPAR' : `${item.preco}🪙`)}
+        </div>
+      </div>
+    `;
+  }
+
+  html += '</div>';
+
+  // Botão de tirar
+  const temAlgoEquipado = equipado[abaAtual];
+  if (temAlgoEquipado) {
+    html += `<button id="btnTirar" style="
+      font-size:14px;padding:10px;margin-top:12px;
+      background:#ff6666;color:#fff;opacity:.8;
+    ">🗑️ Tirar ${temAlgoEquipado}</button>`;
+  }
+
+  panel(html);
+
+  // Handlers
+  setTimeout(() => {
+    // Abas
+    document.querySelectorAll('[data-aba]:not(.item-boutique)').forEach(b => {
+      b.onclick = () => {
+        abaAtual = b.dataset.aba;
+        renderBoutique();
+      };
+    });
+
+    // Itens
+    document.querySelectorAll('.item-boutique').forEach(el => {
+      el.onclick = () => {
+        const emoji = el.dataset.item;
+        const aba = el.dataset.aba;
+        clicarItemBoutique(emoji, aba);
+      };
+    });
+
+    // Tirar
+    const btnTirar = document.getElementById('btnTirar');
+    if (btnTirar) {
+      btnTirar.onclick = () => {
+        const equipado = S.equipado || {};
+        equipado[abaAtual] = null;
+        S.equipado = equipado;
+        save();
+        SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+        say('Tirei! 🗑️');
+        aplicarVisual();
+        renderBoutique();
+      };
+    }
+  }, 100);
+}
+
+function clicarItemBoutique(emoji, aba) {
+  const item = BOUTIQUE[aba][emoji];
+  if (!item) return;
+
+  const comprados = S.compras || [];
+  const equipado = S.equipado || {};
+  const jaComprou = comprados.includes(emoji);
+  const jaUsando = equipado[aba] === emoji;
+
+  // Se já tá usando → desequipa
+  if (jaUsando) {
+    equipado[aba] = null;
+    S.equipado = equipado;
+    save();
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+    say('Tirei! 🗑️');
+    aplicarVisual();
+    renderBoutique();
+    return;
+  }
+
+  // Se já comprou → só equipa
+  if (jaComprou) {
+    equipado[aba] = emoji;
+    S.equipado = equipado;
+    save();
+    SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+    say('Equipei! ✨');
+    aplicarVisual();
+    renderBoutique();
+    return;
+  }
+
+  // Se não comprou → tenta comprar
+  if ((S.moedas || 0) < item.preco) {
+    say('Não tenho moedas suficientes... 😢');
+    return;
+  }
+
+  S.moedas -= item.preco;
+  comprados.push(emoji);
+  S.compras = comprados;
+  equipado[aba] = emoji;
+  S.equipado = equipado;
+  save();
+  SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
+  say('Comprei! ✨');
+  aplicarVisual();
+  renderBoutique();
+}
 /* ============ BOAS-VINDAS ============ */
 function welcomePanel() {
   P.innerHTML = `
@@ -1972,6 +2243,7 @@ $('bXarope').onclick = xarope;
 
 /* ============ 13. LOOP PRINCIPAL ============ */
 prefs();
+aplicarVisual();   // ← ADICIONA (aplica o que tava equipado)
 if (!S.modo) setTimeout(modoPanel, 400);
 else iniciarModo();
 /* Saudação inicial */
