@@ -936,14 +936,92 @@ function modoPanel() {
 function iniciarModo() {
   if (S.modo === 'cidade') {
     document.body.classList.add('modo-cidade');
-    panel('<h3>🏙️ Modo Cidade</h3><p style="opacity:.7">Em breve! A imagem da cidade vai aparecer aqui.</p>');
+    abrirCidade();
   } else {
     document.body.classList.remove('modo-cidade');
     if (!S.nome) setTimeout(welcomePanel, 400);
     else if (!S.pers) setTimeout(persPanel, 800);
   }
 }
+/* ============ CIDADE ============ */
+const CIDADE_PREDIOS = {
+  jogos:        { x: 14, y: 20, w: 18, h: 18, nome: '🎮 Jogos Central', fala: 'Hora de brincar! 🎮' },
+  biblioteca:   { x: 34, y: 20, w: 18, h: 18, nome: '📚 Biblioteca',    fala: 'Vou ler um livro! 📚' },
+  boutique:     { x: 54, y: 20, w: 18, h: 18, nome: '👗 Boutique',      fala: 'Roupinhas! 👗' },
+  mercado:      { x: 76, y: 20, w: 18, h: 18, nome: '🛒 Mercado',       fala: 'Vou comprar frutinhas! 🍎' },
+  clinica:      { x: 14, y: 55, w: 15, h: 15, nome: '🏥 Clínica',       fala: 'Vou me cuidar! 🏥' },
+  spa:          { x: 34, y: 55, w: 15, h: 15, nome: '💆 Spa',           fala: 'Aaah, que delícia! 🥒' },
+  observatorio: { x: 54, y: 55, w: 15, h: 15, nome: '🔭 Observatório',  fala: 'Ver estrelas! 🔭' },
+  parque:       { x: 76, y: 55, w: 18, h: 18, nome: '🌳 Parque',        fala: 'Vou passear! 🌳' }
+};
 
+const NEBO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340">
+  <defs><radialGradient id="g-lavanda" gradientUnits="userSpaceOnUse" cx="200" cy="175" r="190"><stop offset="0" stop-color="#D8D2F2"/><stop offset=".55" stop-color="#D8D2F2"/><stop offset="1" stop-color="#9A8FD0"/></radialGradient></defs>
+  <g fill="#5D4F9E" stroke="#5D4F9E" stroke-width="7" stroke-linejoin="round"><circle cx="150" cy="80" r="50"/><circle cx="230" cy="70" r="52"/><circle cx="300" cy="105" r="46"/><circle cx="345" cy="165" r="48"/><circle cx="335" cy="235" r="50"/><circle cx="270" cy="275" r="52"/><circle cx="190" cy="285" r="54"/><circle cx="110" cy="270" r="50"/><circle cx="65" cy="215" r="48"/><circle cx="60" cy="150" r="48"/><circle cx="95" cy="100" r="46"/><ellipse cx="200" cy="178" rx="140" ry="100"/></g>
+  <g fill="url(#g-lavanda)"><circle cx="150" cy="80" r="50"/><circle cx="230" cy="70" r="52"/><circle cx="300" cy="105" r="46"/><circle cx="345" cy="165" r="48"/><circle cx="335" cy="235" r="50"/><circle cx="270" cy="275" r="52"/><circle cx="190" cy="285" r="54"/><circle cx="110" cy="270" r="50"/><circle cx="65" cy="215" r="48"/><circle cx="60" cy="150" r="48"/><circle cx="95" cy="100" r="46"/><ellipse cx="200" cy="178" rx="140" ry="100"/></g>
+  <clipPath id="e1-lavanda"><ellipse cx="150" cy="190" rx="26" ry="34"/></clipPath>
+  <ellipse cx="150" cy="190" rx="26" ry="34" fill="#fff" fill-opacity=".35"/>
+  <g clip-path="url(#e1-lavanda)"><path d="M120 198 Q150 188 180 198 V230 H120Z" fill="#5D4F9E" fill-opacity=".38"/><path d="M120 198 Q150 188 180 198" fill="none" stroke="#5D4F9E" stroke-width="3"/><circle cx="142" cy="208" r="3.5" fill="#fff"/></g>
+  <ellipse cx="150" cy="190" rx="26" ry="34" fill="none" stroke="#5D4F9E" stroke-width="3.5"/><circle cx="143" cy="173" r="2.5" fill="#fff"/><clipPath id="e2-lavanda"><ellipse cx="248" cy="180" rx="26" ry="34"/></clipPath>
+  <ellipse cx="248" cy="180" rx="26" ry="34" fill="#fff" fill-opacity=".35"/>
+  <g clip-path="url(#e2-lavanda)"><path d="M218 188 Q248 178 278 188 V220 H218Z" fill="#5D4F9E" fill-opacity=".38"/><path d="M218 188 Q248 178 278 188" fill="none" stroke="#5D4F9E" stroke-width="3"/><circle cx="240" cy="198" r="3.5" fill="#fff"/></g>
+  <ellipse cx="248" cy="180" rx="26" ry="34" fill="none" stroke="#5D4F9E" stroke-width="3.5"/><circle cx="241" cy="163" r="2.5" fill="#fff"/>
+  <ellipse cx="118" cy="230" rx="14" ry="8" fill="#F29DB5" fill-opacity=".4"/><ellipse cx="282" cy="222" rx="14" ry="8" fill="#F29DB5" fill-opacity=".4"/>
+  <path d="M186 228 q7 9 14 0 q7 9 14 0" fill="none" stroke="#5D4F9E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+function abrirCidade() {
+  let cidade = document.getElementById('cidade');
+  if (!cidade) {
+    cidade = document.createElement('div');
+    cidade.id = 'cidade';
+    cidade.innerHTML = `
+      <img id="cidadeMapa" src="cidade.jpeg" alt="Nébula City">
+      <div id="cidadeNebo">${NEBO_SVG}</div>
+      <div id="cidadeBalao"></div>
+      <button id="cidadeVoltar">← Voltar</button>
+    `;
+    document.body.appendChild(cidade);
+
+    for (const [id, p] of Object.entries(CIDADE_PREDIOS)) {
+      const area = document.createElement('div');
+      area.className = 'predio';
+      area.dataset.p = id;
+      area.style.cssText = `left:${p.x}%;top:${p.y}%;width:${p.w}%;height:${p.h}%`;
+      cidade.appendChild(area);
+    }
+
+    cidade.querySelectorAll('.predio').forEach(el => {
+      el.onclick = () => clicarPredio(el.dataset.p);
+    });
+
+    document.getElementById('cidadeVoltar').onclick = () => {
+      cidade.classList.remove('on');
+    };
+  }
+
+  cidade.classList.add('on');
+  setTimeout(() => mostrarBalao('Onde vamos hoje? ✨'), 400);
+}
+
+function mostrarBalao(texto) {
+  const b = document.getElementById('cidadeBalao');
+  if (!b) return;
+  b.textContent = texto;
+  b.classList.add('on');
+  clearTimeout(window._balaoTimer);
+  window._balaoTimer = setTimeout(() => b.classList.remove('on'), 2200);
+}
+
+function clicarPredio(id) {
+  const p = CIDADE_PREDIOS[id];
+  if (!p) return;
+  mostrarBalao(p.fala);
+  setTimeout(() => {
+    document.getElementById('cidade').classList.remove('on');
+    panel(`<h3>${p.nome}</h3><p style="opacity:.7">Em breve ✨</p>`);
+  }, 1200);
+}
 P.onclick = e => {
   const b = e.target.closest('button');
   if (!b) return;
