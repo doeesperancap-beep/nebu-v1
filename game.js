@@ -590,7 +590,8 @@ function eat(f) {
     S.humor = clamp(S.humor + 2);
     set('happy', 2000, 'Nham! ' + f);
   }
-     SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
+       SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
+  ganharMoedas(1);
   save();
 }
 
@@ -668,6 +669,7 @@ function startGame() {
       clearInterval(iv); c.remove(); gOn = 0;
       S.humor = clamp(S.humor + Math.min(25, score * 3 * pm('play')));
       S.energia = clamp(S.energia - 4);
+      ganharMoedas(score);
       say('Fez ' + score + ' pontos! 🏆');
       if (score >= 10) startDance(7);
       else { set('happy', 3500); wig(); }
@@ -728,6 +730,7 @@ function startButterflies() {
       S.humor = clamp(S.humor + Math.min(25, score * 3 * pm('play')));
       S.energia = clamp(S.energia - 4);
             SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.1);
+          ganharMoedas(score * 2);
             say('Capturou ' + score + ' 🦋✨');
       if (score >= 8) startDance(6); else set('happy', 3000);
       save();
@@ -779,7 +782,8 @@ function startBath() {
         c.remove(); bar.remove(); gOn = 0;
         S.humor = clamp(S.humor + 8);
         S.saude = clamp(S.saude + 3);
-        say('Limpinha! ✨');
+       say('Limpinha! ✨');
+       ganharMoedas(5);
         startDance(6);
         setTimeout(() => set('carinho', 2500, '🥰'), 6200);
         save();
@@ -982,12 +986,14 @@ function drawEstado() {
   const nomeHtml = S.nome
     ? `<div class="st" style="font-size:14px"><b>${S.nome}</b> <span style="opacity:.5;font-size:12px">${S.id || ''}</span></div>`
     : '';
+  const moedasHtml =
+    `<div class="st" style="font-size:14px">🪙 <b>${S.moedas || 0}</b> moedas</div>`;
   $('estado').innerHTML =
     nomeHtml +
+    moedasHtml +
     rows.map(r => `<div class="st"><span>${r[0]}</span><i><b style="width:${Math.round(r[2])}%"></b></i><span>${Math.round(r[2])}%</span></div>`).join('') +
     `<div class="st" style="font-size:12px;opacity:.7">Sensores: inclinar ${gotO ? '✅' : '❌'} · mexer ${gotM ? '✅' : '❌'} · vibrar ${navigator.vibrate ? '✅' : '❌'} · bateria ${batOK ? '✅' : '❌'}</div>`;
 }
-
 $('bEstado').onclick = () => {
   drawEstado();
   $('estado').classList.add('on');
