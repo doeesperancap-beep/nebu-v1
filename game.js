@@ -87,6 +87,7 @@ addEventListener('pointerdown', () => SOM.destravar(), { once: true });
 /* ============ 2. ESTADO ============ */
 const SAVE_KEY = 'nebula-v2';
 const DEFAULT = {
+  modo: null,
   nome: null,
   id: null,
   moedas: 0,
@@ -898,6 +899,54 @@ function panel(h) {
   P.classList.add('on');
 }
 
+/* ============ ESCOLHA DE MODO ============ */
+function modoPanel() {
+  P.innerHTML = `
+    <h3>O que é este dispositivo?</h3>
+    <p style="opacity:.7;font-size:14px;margin:8px 0 16px">
+      Escolha uma vez. Depois só muda nas configurações.
+    </p>
+    <button data-modo="nebo" style="font-size:18px;padding:16px">
+      💗 É uma Nébula
+      <div style="font-size:12px;opacity:.7;margin-top:4px">
+        Eu vou cuidar dela
+      </div>
+    </button>
+    <button data-modo="cidade" style="font-size:18px;padding:16px">
+      🏙️ É a Cidade
+      <div style="font-size:12px;opacity:.7;margin-top:4px">
+        Vai mostrar várias Nebos
+      </div>
+    </button>
+  `;
+  P.classList.add('on');
+
+  setTimeout(() => {
+    P.querySelectorAll('[data-modo]').forEach(b => {
+      b.onclick = () => {
+        S.modo = b.dataset.modo;
+        save();
+        P.classList.remove('on');
+        iniciarModo();
+      };
+    });
+  }, 100);
+}
+
+function iniciarModo() {
+  if (S.modo === 'cidade') {
+    document.body.classList.add('modo-cidade');
+    abrirCidade();
+  } else {
+    document.body.classList.remove('modo-cidade');
+    if (!S.nome) setTimeout(welcomePanel, 400);
+    else if (!S.pers) setTimeout(persPanel, 800);
+  }
+}
+
+P.onclick = e => { ... };   ← continua igual
+
+
 P.onclick = e => {
   const b = e.target.closest('button');
   if (!b) return;
@@ -1012,9 +1061,8 @@ $('bXarope').onclick = xarope;
 
 /* ============ 13. LOOP PRINCIPAL ============ */
 prefs();
-if (!S.nome) setTimeout(welcomePanel, 400);
-else if (!S.pers) setTimeout(persPanel, 800);
-
+if (!S.modo) setTimeout(modoPanel, 400);
+else iniciarModo();
 /* Saudação inicial */
 (() => {
   const d = new Date(), h = d.getHours(), k = d.toDateString();
