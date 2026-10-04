@@ -91,11 +91,10 @@ const DEFAULT = {
   nome: null,
   id: null,
   moedas: 0,
+  conectado: false,
+  cidadeId: null,
   energia: 100, fome: 100, saude: 100, humor: 100,
-  bond: 0, pers: null, sick: 0, greet: '',
-  food: {}, pref: null, dis: null,
-  places: {}, mem: [], lastDance: null,
-  last: Date.now()
+  ...
 };
 /* ============ GERADOR DE ID ÚNICO ============ */
 function gerarID(nome) {
@@ -856,14 +855,37 @@ function joyTick() {
   if (S.humor >= 99 && mood === 'neutral' && !gOn && Math.random() < .01) startDance(5);
 }
 
-/* ============ 11. MUNDO ============ */
-const PL = { '🌳 Praça': 'praca', '🌱 Jardim': 'jardim', '🎪 Eventos': 'eventos' };
-
+/* ============ MUNDO (modo Nébula) ============ */
 function mundo() {
   if (S.sick > Date.now()) { say('Tô gripada... 🤧'); return; }
-  panel('<h3>✨ Nébula City</h3>' +
-    Object.keys(PL).map(k => `<button data-p="${PL[k]}">${k}</button>`).join('') +
-    `<div style="font-size:14px;opacity:.7">Descobertas: ${(S.mem || []).join(' ') || 'nada ainda'}</div>`);
+
+  if (S.conectado) {
+    panel(
+      '<h3>✨ Nébula City</h3>' +
+      `<p style="font-size:13px;opacity:.7;margin:0 0 12px">Conectada! Escolha onde ir:</p>` +
+      '<button data-x="loja" style="font-size:16px;padding:14px">🛒 Mercado</button>' +
+      '<button data-x="spa" style="font-size:16px;padding:14px">💆 Spa</button>' +
+      '<button data-x="clinica" style="font-size:16px;padding:14px">🏥 Clínica</button>' +
+      '<button data-x="biblioteca" style="font-size:16px;padding:14px">📚 Biblioteca</button>' +
+      '<button data-x="parque" style="font-size:16px;padding:14px">🌳 Parque</button>' +
+      '<button data-x="jogos" style="font-size:16px;padding:14px">🎮 Jogos</button>' +
+      '<hr style="border-color:#ffffff20;margin:12px 0">' +
+      '<button data-x="desconectar" style="font-size:14px;opacity:.7">🔌 Desconectar</button>'
+    );
+    return;
+  }
+
+  panel(
+    '<h3>✨ Mundo</h3>' +
+    '<p style="font-size:14px;opacity:.8;line-height:1.5">' +
+      'Conecte-se à Nébula City para visitar lojas, spa e mais!' +
+    '</p>' +
+    '<button data-x="conectar" style="font-size:17px;padding:16px">🔗 Conectar Cidade</button>' +
+    '<hr style="border-color:#ffffff20;margin:12px 0">' +
+    '<button data-p="praca">🌳 Praça</button>' +
+    '<button data-p="jardim">🌱 Jardim</button>' +
+    `<div style="font-size:14px;opacity:.7;margin-top:8px">Descobertas: ${(S.mem || []).join(' ') || 'nada ainda'}</div>`
+  );
 }
 
 function visit(p) {
@@ -1028,11 +1050,79 @@ function clicarPredio(id) {
     panel(`<h3>${p.nome}</h3><p style="opacity:.7">Em breve ✨</p>`);
   }, 1200);
 }
+/* ============ CONECTAR CIDADE ============ */
+function painelConectar() {
+  panel(
+    '<h3>🔗 Conectar Cidade</h3>' +
+    `<p style="font-size:14px;opacity:.8;line-height:1.5">
+      O ID desta Nébula é:<br>
+      <code style="background:#ffffff20;padding:6px 10px;border-radius:6px;font-size:14px;display:inline-block;margin-top:6px">${S.id || 'sem ID'}</code>
+    </p>` +
+    '<p style="font-size:14px;opacity:.8;line-height:1.5;margin-top:14px">' +
+      'Cole o ID da Cidade pra conectar:' +
+    '</p>' +
+    '<input id="idCidade" type="text" placeholder="Ex: CITY-XXXX" maxlength="20" ' +
+      'style="width:100%;padding:12px;border-radius:12px;border:0;font-size:15px;' +
+      'background:#ffffff1a;color:#fff;box-sizing:border-box;margin:8px 0">' +
+    '<button id="btnConectar">Conectar</button>' +
+    '<p style="font-size:12px;opacity:.5;margin-top:12px">' +
+      '🔜 Em breve: conexão real via internet!' +
+    '</p>'
+  );
+
+  setTimeout(() => {
+    const btn = document.getElementById('btnConectar');
+    const inp = document.getElementById('idCidade');
+    if (!btn) return;
+    btn.onclick = () => {
+      const id = (inp.value || '').trim().toUpperCase();
+      if (!id) {
+        inp.style.background = '#ff000044';
+        return;
+      }
+      S.conectado = true;
+      S.cidadeId = id;
+      save();
+      say('Conectada! ✨');
+      P.classList.remove('on');
+      setTimeout(mundo, 400);
+    };
+  }, 100);
+}
+/* ============ PAINÉIS DOS LUGARES (placeholders) ============ */
+function painelLoja()      { panel('<h3>🛒 Mercado</h3><p style="opacity:.7">Em breve! Vou vender frutinhas aqui. 🍎</p>'); }
+function painelSpa()       { panel('<h3>💆 Spa</h3><p style="opacity:.7">Em breve! Vou relaxar aqui. 🥒</p>'); }
+function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
+function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
+function painelParque()    { panel('<h3>🌳 Parque</h3><p style="opacity:.7">Em breve! Vou passear aqui. 🌿</p>'); }
+function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
 P.onclick = e => {
   const b = e.target.closest('button');
   if (!b) return;
   const d = b.dataset;
+
+  // Fechar
   if (d.x === 'close') P.classList.remove('on');
+
+  // Conectar / Desconectar
+  else if (d.x === 'conectar') { P.classList.remove('on'); painelConectar(); }
+  else if (d.x === 'desconectar') {
+    S.conectado = false;
+    S.cidadeId = null;
+    save();
+    say('Desconectei...');
+    P.classList.remove('on');
+  }
+
+  // Lugares da cidade
+  else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
+  else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
+  else if (d.x === 'clinica')     { P.classList.remove('on'); painelClinica(); }
+  else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
+  else if (d.x === 'parque')      { P.classList.remove('on'); painelParque(); }
+  else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
+
+  // Coisas antigas
   else if (d.x === 'food') foodTray();
   else if (d.x === 'bath') startBath();
   else if (d.x === 'xarope') xarope();
