@@ -13,8 +13,9 @@ let salaRef = null;
 
 function iniciarFirebase() {
   if (dbFirebase) return dbFirebase;
+  if (typeof firebase === 'undefined') return null;   // ← ADICIONA ESSA LINHA
   try {
-    firebase.initializeApp(FIREBASE_CONFIG);
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     dbFirebase = firebase.firestore();
     salaRef = dbFirebase.collection('sala').doc('principal');
     console.log('🔥 Firebase conectado!');
@@ -24,7 +25,6 @@ function iniciarFirebase() {
     return null;
   }
 }
-
 // ==================== SALVAR ====================
 async function salvarNoFirebase() {
   const db = iniciarFirebase();
