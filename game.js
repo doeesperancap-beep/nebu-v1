@@ -784,7 +784,7 @@ function eat(f) {
   }
 
   if (c.saude <= -2) {
-    msgExtra = ' (mas... a barriguinha dói 😅)';
+    msgExtra = ' (muito bom )';
   } else if (c.saude >= 2) {
     msgExtra = ' ✨';
   }
