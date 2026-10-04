@@ -1241,6 +1241,50 @@ setTimeout(mundo, 400);
 }
 /* ============ PAINÉIS DOS LUGARES (placeholders) ============ */
 function painelLoja()      { panel('<h3>🛒 Mercado</h3><p style="opacity:.7">Em breve! Vou vender frutinhas aqui. 🍎</p>'); }
+/* ============ PAINEL DO SPA ============ */
+function painelSpa() {
+  const CUSTO = 10;
+  
+  if ((S.moedas || 0) < CUSTO) {
+    panel(
+      '<h3>💆 Spa</h3>' +
+      `<p style="opacity:.8;margin:12px 0">
+        Pra relaxar no Spa, preciso de <b>🪙 ${CUSTO} moedas</b>.
+      </p>` +
+      `<p style="opacity:.6;font-size:13px">
+        Você tem: 🪙 ${S.moedas || 0}<br>
+        Faça um minigame pra ganhar mais!
+      </p>`
+    );
+    return;
+  }
+  
+  panel(
+    '<h3>💆 Spa</h3>' +
+    `<p style="opacity:.8;margin:12px 0">
+      Relaxar no Spa custa <b>🪙 ${CUSTO} moedas</b>.
+    </p>` +
+    `<p style="opacity:.6;font-size:13px;margin-bottom:16px">
+      Você tem: 🪙 ${S.moedas || 0}
+    </p>` +
+    '<button id="btnFazerSpa" style="font-size:16px;padding:14px">💆 Relaxar agora</button>'
+  );
+  
+  setTimeout(() => {
+    const btn = document.getElementById('btnFazerSpa');
+    if (!btn) return;
+    btn.onclick = fazerSpa;
+  }, 100);
+}
+
+function fazerSpa() {
+  const CUSTO = 10;
+  S.moedas = (S.moedas || 0) - CUSTO;
+  save();
+  P.classList.remove('on');
+  abrirTelaSpa();
+}
+
 /* ============ SPA ============ */
 function abrirTelaSpa() {
   const tela = document.createElement('div');
