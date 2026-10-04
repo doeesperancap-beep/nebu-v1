@@ -87,12 +87,27 @@ addEventListener('pointerdown', () => SOM.destravar(), { once: true });
 /* ============ 2. ESTADO ============ */
 const SAVE_KEY = 'nebula-v2';
 const DEFAULT = {
+  nome: null,
+  id: null,
+  moedas: 0,
   energia: 100, fome: 100, saude: 100, humor: 100,
   bond: 0, pers: null, sick: 0, greet: '',
   food: {}, pref: null, dis: null,
   places: {}, mem: [], lastDance: null,
   last: Date.now()
 };
+/* ============ GERADOR DE ID ÚNICO ============ */
+function gerarID(nome) {
+  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const codigo = Array.from({ length: 4 }, () =>
+    letras[Math.floor(Math.random() * letras.length)]
+  ).join('');
+  const nomeLimpo = (nome || 'NEBO')
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, 6) || 'NEBO';
+  return `NB-${nomeLimpo}-${codigo}`;
+}
 
 let S = (() => {
   try {
@@ -864,6 +879,51 @@ P.onclick = e => {
   else if (d.g === 'b') startButterflies();
   else if (d.x === 'dance') { P.classList.remove('on'); startDance(10); }
 };
+/* ============ BOAS-VINDAS ============ */
+function welcomePanel() {
+  P.innerHTML = `
+    <h3>Oi! Como você vai me chamar?</h3>
+    <input id="nomeInput" type="text" maxlength="12"
+           placeholder="Ex: Luna"
+           style="width:100%;padding:12px;border-radius:12px;
+                  border:0;font-size:17px;margin:8px 0;
+                  background:#ffffff1a;color:#fff;
+                  box-sizing:border-box">
+    <button id="nomeOk">Pronto! ✨</button>
+  `;
+  P.classList.add('on');
+
+  setTimeout(() => {
+    const input = document.getElementById('nomeInput');
+    const botao = document.getElementById('nomeOk');
+
+    input.focus();
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') botao.click();
+    });
+
+    botao.onclick = () => {
+      const nome = input.value.trim();
+      if (!nome) {
+        input.style.background = '#ff000044';
+        return;
+      }
+      S.nome = nome;
+      S.id = gerarID(nome);
+      save();
+      P.innerHTML = `
+        <h3>Prazer, ${nome}! 💗</h3>
+        <p style="opacity:.7;font-size:14px">
+          Seu ID: <code>${S.id}</code>
+        </p>
+      `;
+      setTimeout(() => {
+        P.classList.remove('on');
+        persPanel();
+      }, 2000);
+    };
+  }, 100);
+}
 
 function persPanel() {
   panel('<h3>Como será a Nébula?</h3>' +
@@ -889,7 +949,11 @@ function drawEstado() {
     ['❤️', 'Saúde', S.saude],
     ['😊', 'Humor', S.humor]
   ];
+  const nomeHtml = S.nome
+    ? `<div class="st" style="font-size:14px"><b>${S.nome}</b> <span style="opacity:.5;font-size:12px">${S.id || ''}</span></div>`
+    : '';
   $('estado').innerHTML =
+    nomeHtml +
     rows.map(r => `<div class="st"><span>${r[0]}</span><i><b style="width:${Math.round(r[2])}%"></b></i><span>${Math.round(r[2])}%</span></div>`).join('') +
     `<div class="st" style="font-size:12px;opacity:.7">Sensores: inclinar ${gotO ? '✅' : '❌'} · mexer ${gotM ? '✅' : '❌'} · vibrar ${navigator.vibrate ? '✅' : '❌'} · bateria ${batOK ? '✅' : '❌'}</div>`;
 }
@@ -912,7 +976,8 @@ $('bXarope').onclick = xarope;
 
 /* ============ 13. LOOP PRINCIPAL ============ */
 prefs();
-if (!S.pers) setTimeout(persPanel, 800);
+if (!S.nome) setTimeout(welcomePanel, 400);
+else if (!S.pers) setTimeout(persPanel, 800);
 
 /* Saudação inicial */
 (() => {
