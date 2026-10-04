@@ -1171,11 +1171,12 @@ function painelConectar() {
         return;
       }
       S.conectado = true;
-      S.cidadeId = id;
-      save();
-      say('Conectada! ✨');
-      P.classList.remove('on');
-      setTimeout(mundo, 400);
+S.cidadeId = id;
+save();
+say('Conectada! ✨');
+salvarNoFirebase();   // ← ESSA LINHA NOVA!
+P.classList.remove('on');
+setTimeout(mundo, 400);
     };
   }, 100);
 }
