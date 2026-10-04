@@ -94,7 +94,10 @@ const DEFAULT = {
   conectado: false,
   cidadeId: null,
   energia: 100, fome: 100, saude: 100, humor: 100,
-  ...
+  bond: 0, pers: null, sick: 0, greet: '',
+  food: {}, pref: null, dis: null,
+  places: {}, mem: [], lastDance: null,
+  last: Date.now()
 };
 /* ============ GERADOR DE ID ÚNICO ============ */
 function gerarID(nome) {
