@@ -1,3 +1,90 @@
+/* ============ FIREBASE ============ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBE4z14rQyaGjaV0ULkWPArLOdpQjUjAWo",
+  authDomain: "nebula-city.firebaseapp.com",
+  projectId: "nebula-city",
+  storageBucket: "nebula-city.firebasestorage.app",
+  messagingSenderId: "145504626308",
+  appId: "1:145504626308:web:ac124c13d59ef3f7be44d1"
+};
+
+let dbFirebase = null;
+let salaRef = null;
+
+function iniciarFirebase() {
+  if (dbFirebase) return dbFirebase;
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    dbFirebase = firebase.firestore();
+    salaRef = dbFirebase.collection('sala').doc('principal');
+    console.log('🔥 Firebase conectado!');
+    return dbFirebase;
+  } catch (e) {
+    console.error('❌ Erro Firebase:', e);
+    return null;
+  }
+}
+
+// ==================== SALVAR ====================
+async function salvarNoFirebase() {
+  const db = iniciarFirebase();
+  if (!db || !S.id) return;
+
+  try {
+    await db.collection('nebulas').doc(S.id).set({
+      id: S.id,
+      nome: S.nome || 'Nebo',
+      humor: S.humor,
+      fome: S.fome,
+      energia: S.energia,
+      saude: S.saude,
+      moedas: S.moedas || 0,
+      pers: S.pers,
+      conectado: S.conectado || false,
+      atualizadoEm: Date.now()
+    });
+    console.log('💾 Salvo no Firebase');
+  } catch (e) {
+    console.error('Erro ao salvar:', e);
+  }
+}
+
+// ==================== LER ====================
+async function lerNebulas() {
+  const db = iniciarFirebase();
+  if (!db) return [];
+
+  try {
+    const snapshot = await db.collection('nebulas').get();
+    const lista = [];
+    snapshot.forEach(doc => {
+      const dados = doc.data();
+      // Não mostra a si mesma
+      if (dados.id !== S.id) lista.push(dados);
+    });
+    return lista;
+  } catch (e) {
+    console.error('Erro ao ler:', e);
+    return [];
+  }
+}
+
+// ==================== APAGAR (sair da sala) ====================
+async function sairDoFirebase() {
+  const db = iniciarFirebase();
+  if (!db || !S.id) return;
+  try {
+    await db.collection('nebulas').doc(S.id).delete();
+    console.log('🗑️ Removida da sala');
+  } catch (e) {
+    console.error('Erro ao sair:', e);
+  }
+}
+
+// Salva automaticamente a cada 30 segundos
+setInterval(() => {
+  if (S.id && S.modo === 'nebo') salvarNoFirebase();
+}, 30000);
 /* ============================================================
    NÉBULA — game.js
    Seções:
