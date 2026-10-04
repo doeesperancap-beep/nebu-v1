@@ -1087,17 +1087,46 @@ const NEBO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340">
   <ellipse cx="118" cy="230" rx="14" ry="8" fill="#F29DB5" fill-opacity=".4"/><ellipse cx="282" cy="222" rx="14" ry="8" fill="#F29DB5" fill-opacity=".4"/>
   <path d="M186 228 q7 9 14 0 q7 9 14 0" fill="none" stroke="#5D4F9E" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
+/* ============ MOSTRAR NEBULAS NA CIDADE ============ */
+async function mostrarNebulasNaCidade() {
+  const lista = await lerNebulas();
+  const container = document.getElementById('outrasNebos');
+  if (!container) return;
+
+  if (lista.length === 0) {
+    container.innerHTML = '<p style="opacity:.5;font-size:13px">Nenhuma outra Nébula na sala ainda...</p>';
+    return;
+  }
+
+  container.innerHTML = '<h4 style="margin:8px 0;font-size:14px">🌟 Outras Nebos na sala:</h4>' +
+    lista.map(n => `
+      <div style="background:#ffffff1a;padding:10px;border-radius:12px;margin:6px 0">
+        <div style="font-size:14px"><b>${n.nome || 'Nebo'}</b></div>
+        <div style="font-size:11px;opacity:.6">${n.id}</div>
+        <div style="font-size:12px;margin-top:4px">
+          😊 ${Math.round(n.humor || 0)}% ·
+          🍎 ${Math.round(n.fome || 0)}% ·
+          🔋 ${Math.round(n.energia || 0)}%
+        </div>
+      </div>
+    `).join('');
+}
 
 function abrirCidade() {
   let cidade = document.getElementById('cidade');
   if (!cidade) {
     cidade = document.createElement('div');
-    cidade.id = 'cidade';
-    cidade.innerHTML = `
+        cidade.innerHTML = `
       <img id="cidadeMapa" src="cidade.jpeg" alt="Nébula City">
       <div id="cidadeNebo">${NEBO_SVG}</div>
       <div id="cidadeBalao"></div>
       <button id="cidadeVoltar">← Voltar</button>
+      <div id="outrasNebos" style="
+        position:absolute;top:60px;right:12px;
+        max-width:200px;max-height:60vh;overflow:auto;
+        background:#1b1824e6;border-radius:14px;padding:10px;
+        font-size:13px;color:#fff;z-index:30;
+      "></div>
     `;
     document.body.appendChild(cidade);
 
@@ -1118,8 +1147,10 @@ function abrirCidade() {
     };
   }
 
-  cidade.classList.add('on');
+   cidade.classList.add('on');
   setTimeout(() => mostrarBalao('Onde vamos hoje? ✨'), 400);
+  mostrarNebulasNaCidade();
+  setInterval(mostrarNebulasNaCidade, 15000);   // ← atualiza a cada 15s
 }
 
 function mostrarBalao(texto) {
