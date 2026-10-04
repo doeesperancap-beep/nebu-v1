@@ -184,6 +184,7 @@ const DEFAULT = {
   bond: 0, pers: null, sick: 0, greet: '',
   food: {}, pref: null, dis: null,
   places: {}, mem: [], lastDance: null,
+  estoque: { '🍎': 3, '🍓': 2, '🥭': 1, '🍕': 0, '🍰': 0 },
   last: Date.now()
 };
 /* ============ GERADOR DE ID ÚNICO ============ */
@@ -652,6 +653,45 @@ setInterval(() => {
 }, 25000);
 
 /* ============ 8. COMIDA ============ */
+/* ============ CATÁLOGO DE COMIDAS ============ */
+const CATALOGO = {
+  // 🥗 SAUDÁVEIS
+  '🍎': { nome: 'Maçã',       tipo: 'saudavel', preco: 3,  humor: 2, saude: 2 },
+  '🍓': { nome: 'Morango',    tipo: 'saudavel', preco: 5,  humor: 3, saude: 2 },
+  '🥭': { nome: 'Manga',      tipo: 'saudavel', preco: 6,  humor: 3, saude: 2 },
+  '🍉': { nome: 'Melancia',   tipo: 'saudavel', preco: 7,  humor: 4, saude: 2 },
+  '🍒': { nome: 'Cereja',     tipo: 'saudavel', preco: 8,  humor: 4, saude: 2 },
+  '🫐': { nome: 'Blueberry',  tipo: 'saudavel', preco: 8,  humor: 4, saude: 3 },
+  '🍇': { nome: 'Uva',        tipo: 'saudavel', preco: 6,  humor: 3, saude: 2 },
+  '🥒': { nome: 'Pepino',     tipo: 'saudavel', preco: 4,  humor: 1, saude: 3 },
+  '🥗': { nome: 'Salada',     tipo: 'saudavel', preco: 6,  humor: 2, saude: 4 },
+  '🍣': { nome: 'Sushi',      tipo: 'saudavel', preco: 12, humor: 6, saude: 3 },
+  '🍵': { nome: 'Chá',        tipo: 'saudavel', preco: 4,  humor: 2, saude: 3 },
+
+  // 🍔 INDUSTRIAIS
+  '🍞': { nome: 'Pão',            tipo: 'industrial', preco: 4,  humor: 2, saude: -1 },
+  '🍕': { nome: 'Pizza',          tipo: 'industrial', preco: 18, humor: 7, saude: -2 },
+  '🍔': { nome: 'Hambúrguer',     tipo: 'industrial', preco: 18, humor: 8, saude: -2 },
+  '🧇': { nome: 'Waffle',         tipo: 'industrial', preco: 15, humor: 6, saude: -2 },
+  '🥞': { nome: 'Panqueca',       tipo: 'industrial', preco: 14, humor: 6, saude: -2 },
+  '🍟': { nome: 'Batata frita',   tipo: 'industrial', preco: 12, humor: 6, saude: -2 },
+  '🌭': { nome: 'Cachorro-quente',tipo: 'industrial', preco: 14, humor: 7, saude: -2 },
+  '🌮': { nome: 'Taco',           tipo: 'industrial', preco: 15, humor: 7, saude: -2 },
+  '🧋': { nome: 'Bubble tea',     tipo: 'industrial', preco: 16, humor: 8, saude: -1 },
+  '🍲': { nome: 'Sopa',           tipo: 'industrial', preco: 10, humor: 4, saude: 1 },
+
+  // 🍰 DOCES
+  '🍬': { nome: 'Bala',       tipo: 'doce', preco: 3,  humor: 3, saude: -1 },
+  '🍭': { nome: 'Pirulito',   tipo: 'doce', preco: 5,  humor: 4, saude: -1 },
+  '🍪': { nome: 'Cookie',     tipo: 'doce', preco: 8,  humor: 5, saude: -2 },
+  '🍫': { nome: 'Chocolate',  tipo: 'doce', preco: 10, humor: 6, saude: -2 },
+  '🧊': { nome: 'Raspadinha', tipo: 'doce', preco: 10, humor: 6, saude: -1 },
+  '🍰': { nome: 'Bolo',       tipo: 'doce', preco: 12, humor: 7, saude: -3 },
+  '🍦': { nome: 'Sorvete',    tipo: 'doce', preco: 12, humor: 7, saude: -2 },
+  '🍩': { nome: 'Donut',      tipo: 'doce', preco: 15, humor: 8, saude: -3 },
+  '🧁': { nome: 'Cupcake',    tipo: 'doce', preco: 15, humor: 8, saude: -3 },
+  '🍮': { nome: 'Pudim',      tipo: 'doce', preco: 18, humor: 9, saude: -2 }
+};
 const FOODS = ['🍎', '🍓', '🥒', '🍌'];
 let lastTray = 0;
 
@@ -664,32 +704,90 @@ function prefs() {
 }
 
 function eat(f) {
-  P.classList.remove('on');
-  S.food = S.food || {};
-  S.food[f] = (S.food[f] || 0) + 1;
-  prefs();
-  const full = S.fome > 85;
-  S.fome = clamp(S.fome + (f === S.dis ? 10 : 25) * (full ? .4 : 1));
-  if (S.pref && f === S.pref.f) {
-    S.humor = clamp(S.humor + 8);
-    set('happy', 2500, 'Adoro! ' + f); wig();
-  } else if (f === S.dis) {
-    S.humor = clamp(S.humor - 2);
-    set('sad', 2000, 'Eca... 🤢');
-  } else {
-    S.humor = clamp(S.humor + 2);
-    set('happy', 2000, 'Nham! ' + f);
+  // Verifica se tem no estoque
+  if ((S.estoque[f] || 0) <= 0) {
+    say('Não tenho ' + f + ' no estoque... 😢');
+    return;
   }
-       SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
-  ganharMoedas(1);
+
+  // Pega do catálogo
+  const c = CATALOGO[f];
+  if (!c) {
+    say('Não sei o que é isso... 🤔');
+    return;
+  }
+
+  // Reduz do estoque
+  S.estoque[f] -= 1;
+
+  // Fecha o painel
+  P.classList.remove('on');
+
+  // Aplica efeitos
+  S.fome = clamp(S.fome + 15);
+  S.humor = clamp(S.humor + c.humor);
+  S.saude = clamp(S.saude + c.saude);
+
+  // Fala + expressão
+  let fala = 'Nham! ' + f;
+  let expressao = 'happy';
+  let msgExtra = '';
+
+  if (c.humor >= 7) {
+    fala = 'Adoro! ' + f;
+    expressao = 'carinho';
+  } else if (c.humor >= 5) {
+    fala = 'Que delícia! ' + f;
+  } else if (c.saude >= 3) {
+    fala = 'Saudável! ' + f + ' 🥗';
+  } else if (c.saude < 0) {
+    fala = 'Hmm... ' + f;
+  }
+
+  if (c.saude <= -2) {
+    msgExtra = ' (mas... a barriguinha dói 😅)';
+  } else if (c.saude >= 2) {
+    msgExtra = ' ✨';
+  }
+
+  set(expressao, 2500, fala + msgExtra);
+
+  SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
+
+  if (c.humor >= 6) {
+    setTimeout(() => heart(innerWidth / 2, innerHeight / 2), 300);
+  }
+
   save();
 }
 
 function foodTray() {
-  panel('<h3>🍽️ Comida</h3>' +
-    FOODS.map(f => `<button data-f="${f}">${f}</button>`).join(''));
+  // Pega só as comidas que tem no estoque
+  const temEstoque = Object.keys(S.estoque || {}).filter(f => (S.estoque[f] || 0) > 0);
+  
+  // Comidas industriais e doces não precisam estar no estoque (podem ser compradas direto no mercado)
+  // Mas por enquanto, só mostra o que tem
+  if (temEstoque.length === 0) {
+    panel(
+      '<h3>🍽️ Comida</h3>' +
+      '<p style="opacity:.7;margin:12px 0">Não tem nada no estoque...</p>' +
+      '<p style="opacity:.6;font-size:13px">Vá ao mercado comprar comidinhas! 🛒</p>'
+    );
+    return;
+  }
+  
+  panel(
+    '<h3>🍽️ Comida</h3>' +
+    '<p style="font-size:13px;opacity:.7;margin:0 0 12px">O que tenho pra comer:</p>' +
+    temEstoque.map(f => {
+      const qtd = S.estoque[f] || 0;
+      return `<button data-f="${f}" style="font-size:20px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+        <span>${f}</span>
+        <span style="font-size:12px;opacity:.6">x${qtd}</span>
+      </button>`;
+    }).join('')
+  );
 }
-
 /* ============ 9. DOENÇA / XAROPE ============ */
 function sickTick() {
   const n = Date.now();
@@ -1240,7 +1338,123 @@ setTimeout(mundo, 400);
   }, 100);
 }
 /* ============ PAINÉIS DOS LUGARES (placeholders) ============ */
-function painelLoja()      { panel('<h3>🛒 Mercado</h3><p style="opacity:.7">Em breve! Vou vender frutinhas aqui. 🍎</p>'); }
+/* ============ MERCADO ============ */
+let carrinho = {};   // { '🍎': 2, '🍕': 1 }
+
+function painelLoja() {
+  carrinho = {};
+  renderMercado();
+}
+
+function renderMercado() {
+  const secoes = {
+    saudavel:    { emoji: '🥗', nome: 'Saudáveis' },
+    industrial:  { emoji: '🍔', nome: 'Industrializados' },
+    doce:        { emoji: '🍰', nome: 'Doces' }
+  };
+
+  // Monta HTML de cada seção
+  let html = '<h3>🛒 Mercado</h3>';
+  html += `<p style="font-size:13px;opacity:.7;margin:0 0 8px">Você tem: 🪙 ${S.moedas || 0}</p>`;
+
+  for (const [tipo, info] of Object.entries(secoes)) {
+    const comidas = Object.entries(CATALOGO).filter(([_, c]) => c.tipo === tipo);
+    if (comidas.length === 0) continue;
+
+    html += `<div style="margin:12px 0 6px;font-size:14px"><b>${info.emoji} ${info.nome}</b></div>`;
+    html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">';
+    comidas.forEach(([emoji, c]) => {
+      const noCarrinho = carrinho[emoji] || 0;
+      html += `
+        <div class="item-mercado" data-add="${emoji}" style="
+          background:#ffffff1a;border-radius:10px;padding:8px 4px;
+          text-align:center;cursor:pointer;transition:background .2s;
+          border:2px solid ${noCarrinho > 0 ? '#f7d9e4' : 'transparent'};
+        ">
+          <div style="font-size:24px">${emoji}</div>
+          <div style="font-size:10px;opacity:.7">${c.preco}🪙</div>
+          ${noCarrinho > 0 ? `<div style="font-size:10px;color:#f7d9e4;font-weight:bold">x${noCarrinho}</div>` : ''}
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  // Total do carrinho
+  let total = 0;
+  let itensCarrinho = '';
+  const itens = Object.entries(carrinho).filter(([_, q]) => q > 0);
+  if (itens.length > 0) {
+    itens.forEach(([emoji, q]) => {
+      const preco = CATALOGO[emoji].preco * q;
+      total += preco;
+      itensCarrinho += `${emoji}x${q} `;
+    });
+  }
+
+  html += `<hr style="border-color:#ffffff20;margin:12px 0">`;
+  html += `<div style="font-size:14px;margin:8px 0">
+    🛒 Carrinho: ${itensCarrinho || '<span style="opacity:.5">vazio</span>'}
+  </div>`;
+  html += `<div style="font-size:16px;font-weight:bold;margin:8px 0">
+    Total: 🪙 ${total}
+  </div>`;
+
+  // Botões
+  if (itens.length > 0) {
+    html += `<button id="btnPagar" style="font-size:16px;padding:14px;background:#f7d9e4;color:#1b1824">✓ Pagar ${total}🪙</button>`;
+  }
+
+  panel(html);
+
+  // Handlers
+  setTimeout(() => {
+    // Clique nas comidas
+    document.querySelectorAll('[data-add]').forEach(el => {
+      el.onclick = () => {
+        const emoji = el.dataset.add;
+        carrinho[emoji] = (carrinho[emoji] || 0) + 1;
+        SOM.nota(700 + Math.random() * 200, 0.05, 'sine', 0.08);
+        renderMercado();
+      };
+    });
+
+    // Pagar
+    const btnPagar = document.getElementById('btnPagar');
+    if (btnPagar) {
+      btnPagar.onclick = () => {
+        const total = Object.entries(carrinho).reduce((soma, [emoji, q]) => 
+          soma + (CATALOGO[emoji]?.preco || 0) * q, 0);
+        
+        if ((S.moedas || 0) < total) {
+          say('Não tenho moedas suficientes... 😢');
+          return;
+        }
+
+        // Debita
+        S.moedas -= total;
+
+        // Adiciona ao estoque
+        Object.entries(carrinho).forEach(([emoji, q]) => {
+          S.estoque[emoji] = (S.estoque[emoji] || 0) + q;
+        });
+
+        save();
+        SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.08, 'sine', 0.1);
+        say('Comprei tudinho! 🛒✨');
+        
+        // Fecha e volta
+        P.classList.remove('on');
+        carrinho = {};
+        
+        // Volta pro Mundo depois de 1s
+        setTimeout(() => {
+          if (S.conectado) mundo();
+        }, 1000);
+      };
+    }
+  }, 100);
+}
 /* ============ PAINEL DO SPA ============ */
 function painelSpa() {
   const CUSTO = 10;
@@ -1378,7 +1592,7 @@ function abrirTelaSpa() {
   
   // Falas que trocam a cada 2 segundos
   const falas = [
-    'Aaah... que delícia 🥒',
+    'Aaah... que delícia 😊',
     'Tô relaxando... 😌',
     'Que paz... ✨',
     'Pintando a unha 💅',
