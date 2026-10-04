@@ -700,7 +700,8 @@ function sickTick() {
     S.sick = n + 4 * 60000;
     say('Atchim! 🤧 🌡️ 37,8'); set('sick', 0);
   }
-  $('bXarope').style.display = S.sick > n ? '' : 'none';
+  const bx = $('bXarope');                    
+  if (bx) bx.style.display = S.sick > n ? '' : 'none';   
 }
 
 function foodTick() {
@@ -1386,7 +1387,7 @@ function mostrarAviso(nova, key) {
   aviso.onclick = () => {
     localStorage.setItem(key, nova);
     // Force reload, ignorando cache
-    location.reload(true);
+    location.reload();
   };
   document.body.appendChild(aviso);
 }
