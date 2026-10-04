@@ -1093,25 +1093,53 @@ async function mostrarNebulasNaCidade() {
   const container = document.getElementById('outrasNebos');
   if (!container) return;
 
+  // Limpa tudo
+  container.innerHTML = '';
+
   if (lista.length === 0) {
-    container.innerHTML = '<p style="opacity:.5;font-size:13px">Nenhuma outra Nébula na sala ainda...</p>';
+    container.innerHTML = '<p style="opacity:.5;font-size:13px;padding:10px">Nenhuma outra Nébula na sala ainda...</p>';
     return;
   }
 
-  container.innerHTML = '<h4 style="margin:8px 0;font-size:14px">🌟 Outras Nebos na sala:</h4>' +
-    lista.map(n => `
-      <div style="background:#ffffff1a;padding:10px;border-radius:12px;margin:6px 0">
-        <div style="font-size:14px"><b>${n.nome || 'Nebo'}</b></div>
-        <div style="font-size:11px;opacity:.6">${n.id}</div>
-        <div style="font-size:12px;margin-top:4px">
-          😊 ${Math.round(n.humor || 0)}% ·
-          🍎 ${Math.round(n.fome || 0)}% ·
-          🔋 ${Math.round(n.energia || 0)}%
+  // Cabeçalho
+  container.innerHTML = `<h4 style="margin:0 0 8px;font-size:13px">🌟 ${lista.length} Nébula(s) na sala</h4>`;
+
+  // Cada Nébula vira um "card" clicável
+  lista.forEach((n, i) => {
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: #ffffff1a;
+      padding: 8px;
+      border-radius: 12px;
+      margin: 6px 0;
+      cursor: pointer;
+      transition: background .2s;
+    `;
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:30px;height:30px;flex-shrink:0">${NEBO_SVG}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.nome || 'Nebo'}</div>
+          <div style="font-size:10px;opacity:.5">${n.id}</div>
         </div>
       </div>
-    `).join('');
-}
+      <div style="font-size:11px;margin-top:6px;display:flex;gap:6px;justify-content:space-around">
+        <span>😊${Math.round(n.humor||0)}</span>
+        <span>🍎${Math.round(n.fome||0)}</span>
+        <span>🔋${Math.round(n.energia||0)}</span>
+      </div>
+    `;
 
+    card.onmouseenter = () => card.style.background = '#ffffff33';
+    card.onmouseleave = () => card.style.background = '#ffffff1a';
+
+    card.onclick = () => {
+      mostrarBalao(`${n.nome} diz oi! 👋`);
+    };
+
+    container.appendChild(card);
+  });
+}
 function abrirCidade() {
   let cidade = document.getElementById('cidade');
   if (!cidade) {
