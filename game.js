@@ -1018,7 +1018,7 @@ function clicarPredio(id) {
   if (!p) return;
   mostrarBalao(p.fala);
   setTimeout(() => {
-    document.getElementById('cidade').classList.remove('on');
+    // NÃO esconde a cidade. Só mostra o painel por cima.
     panel(`<h3>${p.nome}</h3><p style="opacity:.7">Em breve ✨</p>`);
   }, 1200);
 }
