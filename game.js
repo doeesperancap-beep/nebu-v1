@@ -936,16 +936,13 @@ function modoPanel() {
 function iniciarModo() {
   if (S.modo === 'cidade') {
     document.body.classList.add('modo-cidade');
-    abrirCidade();
+    panel('<h3>🏙️ Modo Cidade</h3><p style="opacity:.7">Em breve! A imagem da cidade vai aparecer aqui.</p>');
   } else {
     document.body.classList.remove('modo-cidade');
     if (!S.nome) setTimeout(welcomePanel, 400);
     else if (!S.pers) setTimeout(persPanel, 800);
   }
 }
-
-P.onclick = e => { ... };   ← continua igual
-
 
 P.onclick = e => {
   const b = e.target.closest('button');
