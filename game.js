@@ -111,7 +111,7 @@ const eyeEls = [...document.querySelectorAll('.eye')];
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const rnd = arr => arr[Math.floor(Math.random() * arr.length)];
 const vib = p => { try { navigator.vibrate?.(p); } catch {} };
-
+const P = $('panel');   // ← ⬅️ ADICIONA AQUI!
 /* ============ 1.5 SISTEMA DE SOM ============ */
 const SOM = (() => {
   let ctx = null;
@@ -1004,7 +1004,6 @@ function visit(p) {
 }
 
 /* ============ 12. UI ============ */
-const P = $('panel');
 
 function panel(h) {
   P.innerHTML = h + '<button data-x="close">Fechar</button>';
