@@ -2802,6 +2802,94 @@ function equiparBorboleta(slot, idxBorboleta) {
     renderCanteiros();
   }
 }
+/* ============ PRESENTE ============ */
+function tentarPresente(chance) {
+  // chance: 0.20 = 20%, 0.30 = 30%, etc
+  if (Math.random() > chance) return;
+  
+  // Verifica se bolsa tá cheia
+  const totalBolsa = (S.bolsaPlantas || []).length + (S.bolsaBorboletas || []).length;
+  if (totalBolsa >= BOLSA_MAX) {
+    say('Bolsa cheia! Não consigo pegar presente 🎒');
+    return;
+  }
+  
+  // Se já tem um presente na tela, não cria outro
+  if (document.getElementById('presenteFlutuante')) return;
+  
+  // Cria o presente flutuante
+  const presente = document.createElement('div');
+  presente.id = 'presenteFlutuante';
+  presente.textContent = '🎁';
+  presente.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 80px;
+    cursor: pointer;
+    z-index: 250;
+    animation: presentePulsa 1s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(247,217,228,.8));
+    user-select: none;
+  `;
+  document.body.appendChild(presente);
+  
+  presente.onclick = () => {
+    presente.remove();
+    abrirPresente();
+  };
+  
+  // Some sozinho depois de 15s se não clicar
+  setTimeout(() => {
+    if (document.getElementById('presenteFlutuante')) {
+      presente.remove();
+      say('O presente fugiu... 🎁💨');
+    }
+  }, 15000);
+}
+
+function abrirPresente() {
+  // Sorteia tipo de presente
+  const r = Math.random();
+  let escolhido = 'semente';
+  if (r < 0.71) escolhido = 'semente';        // 71%
+  else if (r < 0.97) escolhido = 'ovo';       // 26%
+  else escolhido = 'borboleta';               // 3%
+  
+  if (escolhido === 'semente') {
+    const plantas = Object.keys(ESPECIES.plantas);
+    const semente = rnd(plantas);
+    S.bolsaPlantas = S.bolsaPlantas || [];
+    S.bolsaPlantas.push(semente);
+    save();
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.12);
+    set('surprised', 3000, '🎁 Semente de ' + ESPECIES.plantas[semente].nome + '!');
+    
+  } else if (escolhido === 'ovo') {
+    const borb = rnd(Object.keys(ESPECIES.borboletas));
+    S.bolsaBorboletas = S.bolsaBorboletas || [];
+    S.bolsaBorboletas.push('ovo-' + borb);
+    save();
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.12);
+    set('surprised', 3000, '🎁 Um ovo misterioso!');
+    
+  } else {
+    const borb = rnd(Object.keys(ESPECIES.borboletas));
+    S.bolsaBorboletas = S.bolsaBorboletas || [];
+    S.bolsaBorboletas.push(borb);
+    save();
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2, N.MI, N.SOL], 0.12, 'sine', 0.14);
+    set('surprised', 4000, '🎁 Borboleta ' + ESPECIES.borboletas[borb].nome + '!');
+  }
+  
+  // Animação de brilho
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      heart(innerWidth / 2 + (Math.random() - 0.5) * 200, innerHeight / 2);
+    }, i * 150);
+  }
+}
 /* ============ PARQUE ============ */
 function abrirParque() {
   tocarSomJardim();
@@ -2932,7 +3020,31 @@ function abrirParque() {
       btnBolsa.onclick = () => abrirBolsa();
     }
   }, 100);
+   // Renderiza canteiros
+  renderCanteiros();
+  
+  // Handlers dos botões (Sair e Bolsa)
+  setTimeout(() => {
+    const btnSair = document.getElementById('sairParque');
+    if (btnSair) {
+      btnSair.onclick = () => {
+        pararSomJardim();
+        parque.remove();
+      };
+    }
+    
+    const btnBolsa = document.getElementById('btnBolsaParque');
+    if (btnBolsa) {
+      btnBolsa.onclick = () => abrirBolsa();
+    }
+  }, 100);
+  
+  // 🎁 Tenta dar presente (20% de chance)
+  setTimeout(() => tentarPresente(0.20), 2000);
 }
+
+  function renderCanteiros() {
+  const container = document.getElementById('canteiros');
 
   function renderCanteiros() {
   const container = document.getElementById('canteiros');
