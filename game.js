@@ -3005,21 +3005,6 @@ function abrirParque() {
   // Renderiza canteiros
   renderCanteiros();
   
-  // Handlers dos botões (Sair e Bolsa) — FORA do plantar
-  setTimeout(() => {
-    const btnSair = document.getElementById('sairParque');
-    if (btnSair) {
-      btnSair.onclick = () => {
-        pararSomJardim();
-        parque.remove();
-      };
-    }
-    
-    const btnBolsa = document.getElementById('btnBolsaParque');
-    if (btnBolsa) {
-      btnBolsa.onclick = () => abrirBolsa();
-    }
-  }, 100);
    // Renderiza canteiros
   renderCanteiros();
   
@@ -3043,12 +3028,13 @@ function abrirParque() {
   setTimeout(() => tentarPresente(0.20), 2000);
 }
 
-  function renderCanteiros() {
-  const container = document.getElementById('canteiros');
-
-  function renderCanteiros() {
+function renderCanteiros() {
   const container = document.getElementById('canteiros');
   if (!container) return;
+  
+  const canteiros = S.canteiros || [];
+  const max = 7;
+  // ... resto da função continua ...
   
   const canteiros = S.canteiros || [];
   const max = 7;
