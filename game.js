@@ -3254,7 +3254,10 @@ function abrirParque() {
 `;
 
   
-  document.body.appendChild(parque);
+   document.body.appendChild(parque);
+  
+  // Atualiza crescimento (inclui o tempo que ficou offline)
+  atualizarCrescimento();
   
   // Renderiza canteiros
   renderCanteiros();
@@ -3275,8 +3278,17 @@ function abrirParque() {
     }
   }, 100);
   
-  // 🎁 Tenta dar presente (20% de chance)
+    // 🎁 Tenta dar presente (20% de chance)
   setTimeout(() => tentarPresente(0.20), 2000);
+
+  // 🌱 Atualiza crescimento a cada 15s enquanto o parque tá aberto
+  const intervaloCrescimento = setInterval(() => {
+    if (!document.getElementById('telaParque')) {
+      clearInterval(intervaloCrescimento);
+      return;
+    }
+    atualizarCrescimento();
+  }, 15000);
 }
 
 function renderCanteiros() {
@@ -3369,6 +3381,7 @@ function plantarNoCanteiro(slot) {
       regasHoje: 0,
       ultimaRegaData: '',
       plantadaEm: Date.now()
+      ultimoCrescimento: Date.now()
     };
     save();
     SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
@@ -3450,15 +3463,61 @@ function regarCanteiro(slot) {
     return;
   }
   
-  canteiro.regasHoje++;
-  canteiro.crescendo = Math.min(100, canteiro.crescendo + 10);
+    canteiro.regasHoje++;
+  // Rega acelera: +8% direto + reinicia o relógio (dá um "empurrão")
+  canteiro.crescendo = Math.min(100, (canteiro.crescendo || 0) + 8);
   canteiro.ultimaRega = Date.now();
+  canteiro.ultimoCrescimento = Date.now(); // reinicia o relógio do crescimento
   S.canteiros[slot] = canteiro;
   save();
   
   SOM.melodia([N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.08);
-  say('Reguei! 💧 +10%');
+  say('Reguei! 💧 +8%');
   renderCanteiros();
+}
+/* ============ CRESCIMENTO POR TEMPO REAL ============ */
+// Cada planta leva X minutos pra crescer 100% (do ESPECIES.plantas[id].tempo)
+// O tempo é em MINUTOS reais. Ex: ipe.tempo = 36 → 36 min pra ficar 100%.
+
+function atualizarCrescimento() {
+  const agora = Date.now();
+  const canteiros = S.canteiros || [];
+  let mudou = false;
+
+  for (let i = 0; i < canteiros.length; i++) {
+    const c = canteiros[i];
+    if (!c || !c.semente) continue;
+
+    // Se nunca teve marca de tempo, cria agora
+    if (!c.ultimoCrescimento) {
+      c.ultimoCrescimento = agora;
+      mudou = true;
+      continue;
+    }
+
+    // Quanto tempo passou (em minutos)
+    const minutosPassados = (agora - c.ultimoCrescimento) / 60000;
+    if (minutosPassados < 0.5) continue; // menos de 30s, ignora
+
+    // Quanto tempo total a planta leva
+    const tempoTotal = ESPECIES.plantas[c.semente]?.tempo || 36;
+
+    // % que cresceu nesse período
+    const ganho = (minutosPassados / tempoTotal) * 100;
+
+    c.crescendo = Math.min(100, (c.crescendo || 0) + ganho);
+    c.ultimoCrescimento = agora;
+    mudou = true;
+  }
+
+  if (mudou) {
+    S.canteiros = canteiros;
+    save();
+    // Se o parque tá aberto, atualiza visual
+    if (document.getElementById('telaParque')) {
+      renderCanteiros();
+    }
+  }
 }
 /* ============ BOAS-VINDAS ============ */
 function welcomePanel() {
