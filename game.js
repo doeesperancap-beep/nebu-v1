@@ -199,8 +199,8 @@ const DEFAULT = {
   bolsaBorboletas: [],    // ← NOVO
   
   // Parque
-  canteiros: [],          // ← NOVO (7 slots)
-  borboletasParque: [],   // ← NOVO (máx 3 visíveis)
+ canteiros: [null, null, null, null, null, null, null],  // 7 slots
+borboletasParque: [],   // máx 3 visíveis
   
   // Ciclo
   ovos: [],               // ← NOVO
@@ -949,6 +949,259 @@ const BOUTIQUE = {
     '🌉': { nome: 'Via Láctea',        preco: 80, cor: '#0a0a2e' }
   }
 };
+/* ============ ESPÉCIES (plantas + borboletas) ============ */
+const ESPECIES = {
+  plantas: {
+    ipe:       { nome: 'Ipê',        raridade: 'comum',   tempo: 36, atrai: ['amarela', 'verde'] },
+    juazeiro:  { nome: 'Juazeiro',   raridade: 'comum',   tempo: 36, atrai: ['verde'] },
+    angico:    { nome: 'Angico',     raridade: 'comum',   tempo: 36, atrai: [] },
+    aroeira:   { nome: 'Aroeira',    raridade: 'comum',   tempo: 36, atrai: ['vermelha'] },
+    umbuzeiro: { nome: 'Umbuzeiro',  raridade: 'comum',   tempo: 36, atrai: [] },
+    samambaia: { nome: 'Samambaia',  raridade: 'comum',   tempo: 18, atrai: [] },
+    cerejeira: { nome: 'Cerejeira',  raridade: 'incomum', tempo: 24, atrai: ['rosa'] },
+    bordo:     { nome: 'Bordo',      raridade: 'incomum', tempo: 36, atrai: [] },
+    carvalho:  { nome: 'Carvalho',   raridade: 'incomum', tempo: 36, atrai: ['folha'] },
+    magnolia:  { nome: 'Magnólia',   raridade: 'rara',    tempo: 18, atrai: ['branca', 'fantasma'] },
+    tulipa:    { nome: 'Tulipa',     raridade: 'comum',   tempo: 12, atrai: [] },
+    lavanda:   { nome: 'Lavanda',    raridade: 'comum',   tempo: 12, atrai: ['azul', 'roxa'] },
+    hibisco:   { nome: 'Hibisco',    raridade: 'comum',   tempo: 18, atrai: ['amarela', 'laranja', 'vermelha'] },
+    lotus:     { nome: 'Lótus',      raridade: 'rara',    tempo: 24, atrai: [] }
+  },
+  borboletas: {
+    azul:     { nome: 'Azul',              raridade: 'comum',      tempo: 12, cor: '#3498DB', cor2: '#5DADE2' },
+    amarela:  { nome: 'Amarela',           raridade: 'comum',      tempo: 12, cor: '#F4D03F', cor2: '#F7DC6F' },
+    laranja:  { nome: 'Laranja',           raridade: 'comum',      tempo: 18, cor: '#F39C12', cor2: '#F5B041' },
+    branca:   { nome: 'Branca',            raridade: 'incomum',    tempo: 18, cor: '#F5F5F5', cor2: '#EAECEE' },
+    rosa:     { nome: 'Rosa',              raridade: 'incomum',    tempo: 24, cor: '#F29DB5', cor2: '#F5B7C5' },
+    roxa:     { nome: 'Roxa',              raridade: 'rara',       tempo: 24, cor: '#9B59B6', cor2: '#AF7AC5' },
+    vermelha: { nome: 'Vermelha',          raridade: 'rara',       tempo: 30, cor: '#E74C3C', cor2: '#EC7063' },
+    verde:    { nome: 'Verde',             raridade: 'muito-rara', tempo: 36, cor: '#2ECC71', cor2: '#58D68D' },
+    folha:    { nome: 'Borboleta-Folha',   raridade: 'especial',   tempo: 36, cor: '#B9770E', cor2: '#D68910' },
+    fantasma: { nome: 'Borboleta-Fantasma',raridade: 'especial',   tempo: 30, cor: '#D7BDE2', cor2: '#E8DAEF' },
+    nebula:   { nome: 'Borboleta da Nébula',raridade: 'exclusiva', tempo: 36, cor: '#5D4F9E', cor2: '#9B8FD4' }
+  }
+};
+
+/* ============ BOLSA ============ */
+const BOLSA_MAX = 20;
+
+/* ============ CORES DE RARIDADE ============ */
+const RARIDADE_COR = {
+  'comum':      '#27AE60',
+  'incomum':    '#3498DB',
+  'rara':       '#9B59B6',
+  'muito-rara': '#F39C12',
+  'especial':   '#E91E63',
+  'exclusiva':  '#5D4F9E'
+};
+/* ============ SVGs DAS BORBOLETAS ============ */
+const SVG_BORBOLETA = {
+  azul: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#3498DB"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#3498DB"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#5DADE2"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#5DADE2"/>
+    <circle cx="30" cy="32" r="4" fill="#1B4F72" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#1B4F72" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  amarela: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#F4D03F"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#F4D03F"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#F7DC6F"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#F7DC6F"/>
+    <circle cx="30" cy="32" r="4" fill="#7D6608" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#7D6608" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  laranja: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#F39C12"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#F39C12"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#F5B041"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#F5B041"/>
+    <circle cx="30" cy="32" r="4" fill="#7E5109" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#7E5109" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  branca: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#F5F5F5"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#F5F5F5"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#EAECEE"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#EAECEE"/>
+    <circle cx="30" cy="32" r="4" fill="#7F8C8D" opacity=".5"/>
+    <circle cx="70" cy="32" r="4" fill="#7F8C8D" opacity=".5"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  rosa: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#F29DB5"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#F29DB5"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#F5B7C5"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#F5B7C5"/>
+    <circle cx="30" cy="32" r="4" fill="#943126" opacity=".5"/>
+    <circle cx="70" cy="32" r="4" fill="#943126" opacity=".5"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  roxa: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#9B59B6"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#9B59B6"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#AF7AC5"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#AF7AC5"/>
+    <circle cx="30" cy="32" r="4" fill="#4A235A" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#4A235A" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  vermelha: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#E74C3C"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#E74C3C"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#EC7063"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#EC7063"/>
+    <circle cx="30" cy="32" r="4" fill="#641E16" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#641E16" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  verde: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#2ECC71"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#2ECC71"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#58D68D"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#58D68D"/>
+    <circle cx="30" cy="32" r="4" fill="#145A32" opacity=".7"/>
+    <circle cx="70" cy="32" r="4" fill="#145A32" opacity=".7"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  folha: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#B9770E"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#B9770E"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#D68910"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#D68910"/>
+    <path d="M20 30 Q30 25 40 30" stroke="#7E5109" stroke-width="1.5" fill="none"/>
+    <path d="M60 30 Q70 25 80 30" stroke="#7E5109" stroke-width="1.5" fill="none"/>
+    <circle cx="30" cy="32" r="4" fill="#4A2505" opacity=".8"/>
+    <circle cx="70" cy="32" r="4" fill="#4A2505" opacity=".8"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#2C3E50"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#2C3E50" stroke-width="1.5"/>
+  </svg>`,
+
+  fantasma: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="#D7BDE2" opacity=".7"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="#D7BDE2" opacity=".7"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#E8DAEF" opacity=".7"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#E8DAEF" opacity=".7"/>
+    <circle cx="30" cy="32" r="4" fill="#4A235A" opacity=".4"/>
+    <circle cx="70" cy="32" r="4" fill="#4A235A" opacity=".4"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#4A235A" opacity=".5"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#4A235A" stroke-width="1.5" opacity=".5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#4A235A" stroke-width="1.5" opacity=".5"/>
+  </svg>`,
+
+  nebula: `<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="nebulaGrad">
+        <stop offset="0%" stop-color="#9B8FD4"/>
+        <stop offset="50%" stop-color="#5D4F9E"/>
+        <stop offset="100%" stop-color="#2C1F5C"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="30" cy="35" rx="22" ry="20" fill="url(#nebulaGrad)"/>
+    <ellipse cx="70" cy="35" rx="22" ry="20" fill="url(#nebulaGrad)"/>
+    <ellipse cx="32" cy="50" rx="16" ry="14" fill="#9B8FD4" opacity=".7"/>
+    <ellipse cx="68" cy="50" rx="16" ry="14" fill="#9B8FD4" opacity=".7"/>
+    <circle cx="25" cy="28" r="1.5" fill="#fff"/>
+    <circle cx="35" cy="38" r="1" fill="#fff"/>
+    <circle cx="65" cy="28" r="1.5" fill="#fff"/>
+    <circle cx="75" cy="38" r="1" fill="#fff"/>
+    <circle cx="30" cy="32" r="4" fill="#1A0D2E" opacity=".6"/>
+    <circle cx="70" cy="32" r="4" fill="#1A0D2E" opacity=".6"/>
+    <ellipse cx="50" cy="45" rx="3" ry="18" fill="#1A0D2E"/>
+    <line x1="50" y1="28" x2="44" y2="20" stroke="#1A0D2E" stroke-width="1.5"/>
+    <line x1="50" y1="28" x2="56" y2="20" stroke="#1A0D2E" stroke-width="1.5"/>
+  </svg>`
+};
+/* ============ SVG DAS PLANTAS (por estágio) ============ */
+function svgPlanta(idPlanta, estagio) {
+  // estagio: 0-100 (0=broto, 100=flor pronta)
+  // Retorna o SVG certo pro estágio
+  
+  const nome = ESPECIES.plantas[idPlanta]?.nome || idPlanta;
+  
+  // Cores por planta (pra diferenciar visualmente)
+  const cores = {
+    ipe:       { flor: '#F4D03F', fruta: null,      tronco: '#8B4513' },
+    juazeiro:  { flor: '#7DCEA0', fruta: '#B7950B', tronco: '#654321' },
+    angico:    { flor: '#A0522D', fruta: null,      tronco: '#5D4037' },
+    aroeira:   { flor: '#E74C3C', fruta: '#C0392B', tronco: '#6D4C41' },
+    umbuzeiro: { flor: '#B7950B', fruta: '#F1C40F', tronco: '#795548' },
+    samambaia: { flor: '#27AE60', fruta: null,      tronco: '#1E8449' },
+    cerejeira: { flor: '#F29DB5', fruta: null,      tronco: '#5D4037' },
+    bordo:     { flor: '#E67E22', fruta: null,      tronco: '#5D4037' },
+    carvalho:  { flor: '#229954', fruta: '#7D6608', tronco: '#5D4037' },
+    magnolia:  { flor: '#F5F5F5', fruta: null,      tronco: '#5D4037' },
+    tulipa:    { flor: '#E91E63', fruta: null,      tronco: '#27AE60' },
+    lavanda:   { flor: '#9B59B6', fruta: null,      tronco: '#7D3C98' },
+    hibisco:   { flor: '#E74C3C', fruta: null,      tronco: '#27AE60' },
+    lotus:     { flor: '#F8C8DC', fruta: null,      tronco: '#27AE60' }
+  };
+  
+  const c = cores[idPlanta] || cores.ipe;
+  
+  // BROTO (0-30%)
+  if (estagio < 30) {
+    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="90" rx="20" ry="5" fill="#654321" opacity=".4"/>
+      <line x1="50" y1="90" x2="50" y2="65" stroke="#27AE60" stroke-width="4" stroke-linecap="round"/>
+      <ellipse cx="44" cy="62" rx="8" ry="5" fill="#2ECC71" transform="rotate(-30 44 62)"/>
+      <ellipse cx="56" cy="62" rx="8" ry="5" fill="#2ECC71" transform="rotate(30 56 62)"/>
+    </svg>`;
+  }
+  
+  // MUDA (30-70%)
+  if (estagio < 70) {
+    return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="50" cy="90" rx="22" ry="6" fill="#654321" opacity=".4"/>
+      <rect x="46" y="60" width="8" height="30" fill="${c.tronco}" rx="2"/>
+      <circle cx="50" cy="50" r="22" fill="${c.flor}" opacity=".5"/>
+      <circle cx="38" cy="55" r="12" fill="${c.flor}" opacity=".4"/>
+      <circle cx="62" cy="55" r="12" fill="${c.flor}" opacity=".4"/>
+      <circle cx="50" cy="48" r="4" fill="#fff" opacity=".3"/>
+    </svg>`;
+  }
+  
+  // FLOR PRONTA (70-100%)
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="90" rx="25" ry="7" fill="#654321" opacity=".4"/>
+    <rect x="46" y="55" width="8" height="35" fill="${c.tronco}" rx="2"/>
+    <circle cx="50" cy="45" r="28" fill="${c.flor}"/>
+    <circle cx="32" cy="55" r="16" fill="${c.flor}"/>
+    <circle cx="68" cy="55" r="16" fill="${c.flor}"/>
+    ${c.fruta ? `<circle cx="42" cy="42" r="4" fill="${c.fruta}"/>
+                <circle cx="58" cy="48" r="4" fill="${c.fruta}"/>` : ''}
+    <circle cx="42" cy="38" r="6" fill="#fff" opacity=".3"/>
+  </svg>`;
+}
 /* ============ 9. DOENÇA / XAROPE ============ */
 function sickTick() {
   const n = Date.now();
@@ -2176,98 +2429,71 @@ function clicarItemBoutique(emoji, aba) {
   renderBoutique();
 }
 /* ============ BOLSA ============ */
+let bolsaAbaAtual = 'plantas';
+
 function abrirBolsa() {
-  const plantas = S.bolsaPlantas || [];
-  const borboletas = S.bolsaBorboletas || [];
-  const total = plantas.length + borboletas.length;
-  const ocupado = total;
-  const cheio = ocupado >= BOLSA_MAX;
-
-  let html = '<h3>🎒 Bolsa</h3>';
-  html += `<p style="font-size:13px;opacity:.7;margin:0 0 12px">
-    ${ocupado}/${BOLSA_MAX} itens ${cheio ? '· <span style="color:#ff6666">CHEIA</span>' : ''}
-  </p>`;
-
-  // Abas
-  html += `
-    <div style="display:flex;gap:6px;margin:12px 0">
-      <button data-bolsa-aba="plantas" style="
-        flex:1;padding:10px;font-size:14px;
-        background:#f7d9e4;color:#1b1824;
-        border:0;border-radius:10px;
-      ">🌱 Plantas (${plantas.length})</button>
-      <button data-bolsa-aba="borboletas" style="
-        flex:1;padding:10px;font-size:14px;
-        background:#ffffff1a;color:#fff;
-        border:0;border-radius:10px;
-      ">🦋 Borboletas (${borboletas.length})</button>
-    </div>
-  `;
-
-  // Conteúdo da aba (plantas por padrão)
-  html += renderBolsaConteudo('plantas');
-
-  panel(html);
-
-  // Handlers
-  setTimeout(() => {
-    // Abas
-    document.querySelectorAll('[data-bolsa-aba]').forEach(b => {
-      b.onclick = () => {
-        const aba = b.dataset.bolsaAba;
-        // Recria o painel com a aba escolhida
-        abrirBolsaComAba(aba);
-      };
-    });
-    
-    // Itens (excluir)
-    document.querySelectorAll('[data-bolsa-idx]').forEach(el => {
-      el.onclick = () => {
-        const tipo = el.dataset.bolsaTipo;
-        const idx = Number(el.dataset.bolsaIdx);
-        excluirItemBolsa(tipo, idx);
-      };
-    });
-  }, 100);
+  bolsaAbaAtual = 'plantas';
+  renderBolsa();
 }
 
 function abrirBolsaComAba(aba) {
+  bolsaAbaAtual = aba;
+  renderBolsa();
+}
+
+function renderBolsa() {
   const plantas = S.bolsaPlantas || [];
   const borboletas = S.bolsaBorboletas || [];
   const total = plantas.length + borboletas.length;
-
+  const cheio = total >= BOLSA_MAX;
+  
   let html = '<h3>🎒 Bolsa</h3>';
   html += `<p style="font-size:13px;opacity:.7;margin:0 0 12px">
-    ${total}/${BOLSA_MAX} itens
+    ${total}/${BOLSA_MAX} itens ${cheio ? '· <span style="color:#ff6666">CHEIA</span>' : ''}
   </p>`;
-
-  html += `
-    <div style="display:flex;gap:6px;margin:12px 0">
-      <button data-bolsa-aba="plantas" style="
-        flex:1;padding:10px;font-size:14px;
-        background:${aba === 'plantas' ? '#f7d9e4' : '#ffffff1a'};
-        color:${aba === 'plantas' ? '#1b1824' : '#fff'};
-        border:0;border-radius:10px;
-      ">🌱 Plantas (${plantas.length})</button>
-      <button data-bolsa-aba="borboletas" style="
-        flex:1;padding:10px;font-size:14px;
-        background:${aba === 'borboletas' ? '#f7d9e4' : '#ffffff1a'};
-        color:${aba === 'borboletas' ? '#1b1824' : '#fff'};
-        border:0;border-radius:10px;
-      ">🦋 Borboletas (${borboletas.length})</button>
-    </div>
-  `;
-
-  html += renderBolsaConteudo(aba);
-
+  
+  // Abas
+  html += `<div style="display:flex;gap:6px;margin:12px 0">
+    <button data-bolsa-aba="plantas" style="
+      flex:1;padding:10px;font-size:14px;
+      background:${bolsaAbaAtual === 'plantas' ? '#f7d9e4' : '#ffffff1a'};
+      color:${bolsaAbaAtual === 'plantas' ? '#1b1824' : '#fff'};
+      border:0;border-radius:10px;cursor:pointer;
+    ">🌱 Plantas (${plantas.length})</button>
+    <button data-bolsa-aba="borboletas" style="
+      flex:1;padding:10px;font-size:14px;
+      background:${bolsaAbaAtual === 'borboletas' ? '#f7d9e4' : '#ffffff1a'};
+      color:${bolsaAbaAtual === 'borboletas' ? '#1b1824' : '#fff'};
+      border:0;border-radius:10px;cursor:pointer;
+    ">🦋 Borboletas (${borboletas.length})</button>
+  </div>`;
+  
+  // Conteúdo
+  html += '<div style="max-height:50vh;overflow-y:auto">';
+  html += renderBolsaConteudo(bolsaAbaAtual);
+  html += '</div>';
+  
+  // Aviso se cheia
+  if (cheio) {
+    html += `<p style="font-size:12px;color:#ff6666;text-align:center;margin-top:12px">
+      ⚠️ Bolsa cheia! Descartar pra ganhar mais.
+    </p>`;
+  }
+  
   panel(html);
-
+  
+  // Handlers
   setTimeout(() => {
     document.querySelectorAll('[data-bolsa-aba]').forEach(b => {
       b.onclick = () => abrirBolsaComAba(b.dataset.bolsaAba);
     });
-    document.querySelectorAll('[data-bolsa-idx]').forEach(el => {
-      el.onclick = () => excluirItemBolsa(el.dataset.bolsaTipo, Number(el.dataset.bolsaIdx));
+    
+    document.querySelectorAll('[data-item-idx]').forEach(el => {
+      el.onclick = () => {
+        const tipo = el.dataset.itemTipo;
+        const idx = Number(el.dataset.itemIdx);
+        abrirItemBolsa(tipo, idx);
+      };
     });
   }, 100);
 }
@@ -2276,24 +2502,42 @@ function renderBolsaConteudo(tipo) {
   if (tipo === 'plantas') {
     const plantas = S.bolsaPlantas || [];
     if (plantas.length === 0) {
-      return '<p style="opacity:.5;text-align:center;padding:20px">Nenhuma planta ainda...</p>';
+      return '<p style="opacity:.5;text-align:center;padding:30px">Nenhuma planta ainda... 🌱</p>';
     }
+    
     let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    
     plantas.forEach((semente, i) => {
+      // Verifica se tá equipada em algum canteiro
+      const canteiro = (S.canteiros || []).findIndex(c => c && c.sementeIdx === i);
+      const equipada = canteiro >= 0;
+      
+      // Estágio atual (se equipada)
+      let estagio = 0;
+      if (equipada) {
+        const c = S.canteiros[canteiro];
+        estagio = c.crescendo || 0;
+      }
+      
       const esp = ESPECIES.plantas[semente];
-      const svg = svgPlanta(semente, 100);
+      const svg = svgPlanta(semente, equipada ? estagio : 100);
+      const cor = RARIDADE_COR[esp?.raridade] || '#888';
+      
       html += `
-        <div class="item-bolsa" data-bolsa-tipo="plantas" data-bolsa-idx="${i}" style="
+        <div class="item-bolsa" data-item-idx="${i}" data-item-tipo="plantas" style="
           background:rgba(255,255,255,.1);
           border-radius:12px;padding:8px;text-align:center;cursor:pointer;
-          border:2px solid rgba(255,255,255,.2);
+          border:2px solid ${equipada ? '#7BC47F' : 'rgba(255,255,255,.2)'};
+          position:relative;
         ">
+          <div style="position:absolute;top:4px;right:6px;width:6px;height:6px;border-radius:50%;background:${cor}"></div>
           <div style="width:60px;height:60px;margin:0 auto">${svg}</div>
           <div style="font-size:10px;margin-top:4px">${esp?.nome || semente}</div>
-          <div style="font-size:9px;opacity:.5;margin-top:2px">toque p/ excluir</div>
+          ${equipada ? `<div style="font-size:9px;color:#7BC47F;font-weight:bold;margin-top:2px">✓ ${estagio}%</div>` : ''}
         </div>
       `;
     });
+    
     html += '</div>';
     return html;
   }
@@ -2301,24 +2545,34 @@ function renderBolsaConteudo(tipo) {
   if (tipo === 'borboletas') {
     const borboletas = S.bolsaBorboletas || [];
     if (borboletas.length === 0) {
-      return '<p style="opacity:.5;text-align:center;padding:20px">Nenhuma borboleta ainda...</p>';
+      return '<p style="opacity:.5;text-align:center;padding:30px">Nenhuma borboleta ainda... 🦋</p>';
     }
+    
     let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    
     borboletas.forEach((tipoB, i) => {
       const esp = ESPECIES.borboletas[tipoB];
       const svg = SVG_BORBOLETA[tipoB] || '';
+      const cor = RARIDADE_COR[esp?.raridade] || '#888';
+      
+      // Verifica se tá equipada em alguma planta
+      const equipada = (S.borboletasParque || []).some(b => b.bolsaIdx === i);
+      
       html += `
-        <div class="item-bolsa" data-bolsa-tipo="borboletas" data-bolsa-idx="${i}" style="
+        <div class="item-bolsa" data-item-idx="${i}" data-item-tipo="borboletas" style="
           background:rgba(255,255,255,.1);
           border-radius:12px;padding:8px;text-align:center;cursor:pointer;
-          border:2px solid rgba(255,255,255,.2);
+          border:2px solid ${equipada ? '#7BC47F' : 'rgba(255,255,255,.2)'};
+          position:relative;
         ">
+          <div style="position:absolute;top:4px;right:6px;width:6px;height:6px;border-radius:50%;background:${cor}"></div>
           <div style="width:60px;height:50px;margin:0 auto">${svg}</div>
           <div style="font-size:10px;margin-top:4px">${esp?.nome || tipoB}</div>
-          <div style="font-size:9px;opacity:.5;margin-top:2px">toque p/ excluir</div>
+          ${equipada ? `<div style="font-size:9px;color:#7BC47F;font-weight:bold;margin-top:2px">✓ no parque</div>` : ''}
         </div>
       `;
     });
+    
     html += '</div>';
     return html;
   }
@@ -2326,17 +2580,217 @@ function renderBolsaConteudo(tipo) {
   return '';
 }
 
-function excluirItemBolsa(tipo, idx) {
+function abrirItemBolsa(tipo, idx) {
   const item = tipo === 'plantas' ? S.bolsaPlantas[idx] : S.bolsaBorboletas[idx];
   if (!item) return;
   
-  if (confirm(`Excluir ${item}?`)) {
-    if (tipo === 'plantas') S.bolsaPlantas.splice(idx, 1);
-    else S.bolsaBorboletas.splice(idx, 1);
-    save();
-    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
-    say('Excluí! 🗑️');
-    abrirBolsaComAba(tipo);
+  const esp = tipo === 'plantas' 
+    ? ESPECIES.plantas[item] 
+    : ESPECIES.borboletas[item];
+  
+  let html = `<h3>${esp?.nome || item}</h3>`;
+  html += `<p style="font-size:12px;opacity:.7;margin:8px 0">
+    Raridade: <b style="color:${RARIDADE_COR[esp?.raridade] || '#888'}">${esp?.raridade || '?'}</b>
+  </p>`;
+  
+  if (tipo === 'plantas') {
+    html += `<button data-acao="equipar-planta" data-idx="${idx}" style="font-size:15px;padding:12px">🌱 Equipar num canteiro</button>`;
+  } else {
+    html += `<button data-acao="equipar-borboleta" data-idx="${idx}" style="font-size:15px;padding:12px">🦋 Equipar numa planta</button>`;
+  }
+  
+  html += `<button data-acao="descartar" data-tipo="${tipo}" data-idx="${idx}" style="
+    font-size:14px;padding:10px;margin-top:8px;
+    background:#ff666688;color:#fff;
+  ">🗑️ Descartar</button>`;
+  
+  panel(html);
+  
+  setTimeout(() => {
+    document.querySelectorAll('[data-acao]').forEach(b => {
+      b.onclick = () => {
+        const acao = b.dataset.acao;
+        if (acao === 'descartar') {
+          descartarItem(b.dataset.tipo, Number(b.dataset.idx));
+        } else if (acao === 'equipar-planta') {
+          escolherCanteiroParaSemente(Number(b.dataset.idx));
+        } else if (acao === 'equipar-borboleta') {
+          escolherPlantaParaBorboleta(Number(b.dataset.idx));
+        }
+      };
+    });
+  }, 100);
+}
+
+function descartarItem(tipo, idx) {
+  const item = tipo === 'plantas' ? S.bolsaPlantas[idx] : S.bolsaBorboletas[idx];
+  if (!item) return;
+  
+  const esp = tipo === 'plantas' ? ESPECIES.plantas[item] : ESPECIES.borboletas[item];
+  
+  if (!confirm(`Descartar ${esp?.nome || item}?`)) return;
+  
+  // Se for planta equipada, tira do canteiro
+  if (tipo === 'plantas') {
+    const ci = (S.canteiros || []).findIndex(c => c && c.sementeIdx === idx);
+    if (ci >= 0) S.canteiros[ci] = null;
+    S.bolsaPlantas.splice(idx, 1);
+  } else {
+    // Se for borboleta equipada, tira do parque
+    S.borboletasParque = (S.borboletasParque || []).filter(b => b.bolsaIdx !== idx);
+    S.bolsaBorboletas.splice(idx, 1);
+  }
+  
+  save();
+  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+  say('Descartei! 🗑️');
+  renderBolsa();
+}
+
+/* ============ EQUIPAR SEMENTE NUM CANTEIRO ============ */
+function escolherCanteiroParaSemente(idxSemente) {
+  const canteiros = S.canteiros || [];
+  
+  let html = '<h3>🌱 Escolher canteiro</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">';
+  
+  for (let i = 0; i < 7; i++) {
+    const c = canteiros[i];
+    const vazio = !c;
+    
+    html += `
+      <div class="escolher-canteiro" data-slot="${i}" style="
+        background:${vazio ? '#ffffff1a' : '#ffffff0a'};
+        border:2px dashed ${vazio ? '#7BC47F' : '#ffffff33'};
+        border-radius:12px;padding:12px;text-align:center;
+        cursor:${vazio ? 'pointer' : 'not-allowed'};
+        opacity:${vazio ? 1 : .4};
+      ">
+        <div style="font-size:24px">${vazio ? '🟫' : '🌿'}</div>
+        <div style="font-size:10px;margin-top:4px">${vazio ? 'vazio' : 'ocupado'}</div>
+      </div>
+    `;
+  }
+  
+  html += '</div>';
+  panel(html);
+  
+  setTimeout(() => {
+    document.querySelectorAll('.escolher-canteiro').forEach(el => {
+      el.onclick = () => {
+        const slot = Number(el.dataset.slot);
+        if (canteiros[slot]) {
+          say('Esse canteiro tá ocupado! 🌿');
+          return;
+        }
+        equiparSemente(slot, idxSemente);
+      };
+    });
+  }, 100);
+}
+
+function equiparSemente(slot, idxSemente) {
+  const semente = S.bolsaPlantas[idxSemente];
+  if (!semente) return;
+  
+  S.canteiros = S.canteiros || [];
+  S.canteiros[slot] = {
+    semente: semente,
+    sementeIdx: idxSemente,
+    crescendo: 0,
+    regasHoje: 0,
+    ultimaRegaData: '',
+    plantadaEm: Date.now()
+  };
+  
+  save();
+  SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+  say('Plantei! 🌱');
+  P.classList.remove('on');
+  
+  // Atualiza o parque se estiver aberto
+  if (document.getElementById('telaParque')) {
+    renderCanteiros();
+  }
+}
+
+/* ============ EQUIPAR BORBOLETA NUMA PLANTA ============ */
+function escolherPlantaParaBorboleta(idxBorboleta) {
+  const canteiros = S.canteiros || [];
+  const plantasDisponiveis = [];
+  
+  for (let i = 0; i < 7; i++) {
+    const c = canteiros[i];
+    if (c && c.crescendo >= 70) {
+      plantasDisponiveis.push({ slot: i, canteiro: c });
+    }
+  }
+  
+  if (plantasDisponiveis.length === 0) {
+    say('Precisa de uma planta florida! 🌸');
+    return;
+  }
+  
+  // Se só tem 1, equipa direto
+  if (plantasDisponiveis.length === 1) {
+    equiparBorboleta(plantasDisponiveis[0].slot, idxBorboleta);
+    return;
+  }
+  
+  // Várias: escolhe
+  let html = '<h3>🦋 Escolher planta</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">';
+  
+  plantasDisponiveis.forEach(p => {
+    const esp = ESPECIES.plantas[p.canteiro.semente];
+    const svg = svgPlanta(p.canteiro.semente, 100);
+    html += `
+      <div class="escolher-planta" data-slot="${p.slot}" style="
+        background:#ffffff1a;border:2px solid #7BC47F;
+        border-radius:12px;padding:8px;text-align:center;cursor:pointer;
+      ">
+        <div style="width:60px;height:60px;margin:0 auto">${svg}</div>
+        <div style="font-size:10px;margin-top:4px">${esp?.nome || '?'}</div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  panel(html);
+  
+  setTimeout(() => {
+    document.querySelectorAll('.escolher-planta').forEach(el => {
+      el.onclick = () => equiparBorboleta(Number(el.dataset.slot), idxBorboleta);
+    });
+  }, 100);
+}
+
+function equiparBorboleta(slot, idxBorboleta) {
+  const borboleta = S.bolsaBorboletas[idxBorboleta];
+  if (!borboleta) return;
+  
+  // Limite de 3 borboletas por pessoa
+  if ((S.borboletasParque || []).length >= 3) {
+    say('Máximo 3 borboletas no parque! 🦋');
+    return;
+  }
+  
+  S.borboletasParque = S.borboletasParque || [];
+  S.borboletasParque.push({
+    tipo: borboleta,
+    slot: slot,
+    bolsaIdx: idxBorboleta,
+    nasceu: Date.now()
+  });
+  
+  save();
+  SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
+  say('Borboleta equipada! 🦋');
+  P.classList.remove('on');
+  
+  // Atualiza o parque se estiver aberto
+  if (document.getElementById('telaParque')) {
+    renderCanteiros();
   }
 }
 /* ============ PARQUE ============ */
@@ -2417,7 +2871,23 @@ function abrirParque() {
       z-index:20;
       backdrop-filter: blur(8px);
     ">← Sair</button>
-    
+
+    <!-- Botão BOLSA -->
+<button id="btnBolsaParque" style="
+  position:absolute;
+  top:calc(env(safe-area-inset-top, 0px) + 15px);
+  right:15px;
+  background:rgba(0,0,0,.4);
+  color:#fff;
+  border:0;
+  border-radius:22px;
+  padding:10px 18px;
+  font-size:15px;
+  cursor:pointer;
+  z-index:20;
+  backdrop-filter: blur(8px);
+">🎒 Bolsa</button>
+
     <!-- Canteiros -->
     <div id="canteiros" style="
       position:absolute;
@@ -2573,19 +3043,21 @@ function plantarNoCanteiro(slot) {
   
   panel(html);
   
-  setTimeout(() => {
-    document.querySelectorAll('.escolher-semente').forEach(el => {
-      el.onclick = () => {
-        const idx = Number(el.dataset.idx);
-        const semente = S.bolsaPlantas[idx];
-        S.canteiros = S.canteiros || [];
-        S.canteiros[slot] = {
-          emoji: semente,
-          crescendo: 0,
-          plantadaEm: Date.now(),
-          ultimaRega: 0,
-          regasHoje: 0
-        };
+ setTimeout(() => {
+  const btnSair = document.getElementById('sairParque');
+  if (btnSair) {
+    btnSair.onclick = () => {
+      pararSomJardim();
+      parque.remove();
+    };
+  }
+  
+  // NOVO: botão bolsa
+  const btnBolsa = document.getElementById('btnBolsaParque');
+  if (btnBolsa) {
+    btnBolsa.onclick = () => abrirBolsa();
+  }
+}, 100);
         S.bolsaPlantas.splice(idx, 1);
         save();
         SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
