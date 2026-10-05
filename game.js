@@ -2257,25 +2257,7 @@ P.onclick = e => {
     say('Desconectei...');
     P.classList.remove('on');
   }
-  // Lugares da cidade
-  else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
-  else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
-  else if (d.x === 'clinica')     { P.classList.remove('on'); painelClinica(); }
-  else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
-  else if (d.x === 'parque')      { P.classList.remove('on'); painelParque(); }
-  else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
-  else if (d.x === 'boutique')    { P.classList.remove('on'); painelBoutique(); }
-  // Coisas antigas
-  else if (d.x === 'food')   foodTray();
-  else if (d.x === 'bath')   startBath();
-  else if (d.x === 'xarope') xarope();
-  else if (d.f)              eat(d.f);
-  else if (d.p)              visit(d.p);
-  else if (d.pers)           choose(d.pers);
-  else if (d.g === 'f')      startGame();
-  else if (d.g === 'b')      startButterflies();
-  else if (d.x === 'dance')  { P.classList.remove('on'); startDance(10); }
-};
+
   // Lugares da cidade
   else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
   else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
