@@ -2229,7 +2229,7 @@ function abrirTelaSpa() {
 }
 function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
 function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
-function painelParque()    { panel('<h3>🌳 Parque</h3><p style="opacity:.7">Em breve! Vou passear aqui. 🌿</p>'); }
+function painelParque()    { abrirParque(); }
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
 P.onclick = e => {
   const b = e.target.closest('button');
@@ -2237,11 +2237,19 @@ P.onclick = e => {
   const d = b.dataset;
 
   // Fechar
-  if (d.x === 'close') { P.classList.remove('on'); pararMusicaMercado(); }
-     else if (d.x === 'bolsa') { P.classList.remove('on'); abrirBolsa(); }
-
+  if (d.x === 'close') {
+    P.classList.remove('on');
+    pararMusicaMercado();
+  }
+  else if (d.x === 'bolsa') {
+    P.classList.remove('on');
+    abrirBolsa();
+  }
   // Conectar / Desconectar
-  else if (d.x === 'conectar') { P.classList.remove('on'); painelConectar(); }
+  else if (d.x === 'conectar') {
+    P.classList.remove('on');
+    painelConectar();
+  }
   else if (d.x === 'desconectar') {
     S.conectado = false;
     S.cidadeId = null;
@@ -2249,7 +2257,25 @@ P.onclick = e => {
     say('Desconectei...');
     P.classList.remove('on');
   }
-
+  // Lugares da cidade
+  else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
+  else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
+  else if (d.x === 'clinica')     { P.classList.remove('on'); painelClinica(); }
+  else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
+  else if (d.x === 'parque')      { P.classList.remove('on'); painelParque(); }
+  else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
+  else if (d.x === 'boutique')    { P.classList.remove('on'); painelBoutique(); }
+  // Coisas antigas
+  else if (d.x === 'food')   foodTray();
+  else if (d.x === 'bath')   startBath();
+  else if (d.x === 'xarope') xarope();
+  else if (d.f)              eat(d.f);
+  else if (d.p)              visit(d.p);
+  else if (d.pers)           choose(d.pers);
+  else if (d.g === 'f')      startGame();
+  else if (d.g === 'b')      startButterflies();
+  else if (d.x === 'dance')  { P.classList.remove('on'); startDance(10); }
+};
   // Lugares da cidade
   else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
   else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
