@@ -3005,9 +3005,6 @@ function abrirParque() {
   // Renderiza canteiros
   renderCanteiros();
   
-   // Renderiza canteiros
-  renderCanteiros();
-  
   // Handlers dos botões (Sair e Bolsa)
   setTimeout(() => {
     const btnSair = document.getElementById('sairParque');
@@ -3031,10 +3028,6 @@ function abrirParque() {
 function renderCanteiros() {
   const container = document.getElementById('canteiros');
   if (!container) return;
-  
-  const canteiros = S.canteiros || [];
-  const max = 7;
-  // ... resto da função continua ...
   
   const canteiros = S.canteiros || [];
   const max = 7;
