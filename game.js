@@ -2907,98 +2907,352 @@ function abrirParque() {
     overflow: hidden;
     animation: fadeIn .4s;
   `;
-  
   parque.innerHTML = `
-    <!-- Céu -->
-    <div style="position:absolute;top:0;left:0;right:0;height:40%;overflow:hidden">
-      <div style="position:absolute;top:20px;left:10%;font-size:40px;opacity:.7">☁️</div>
-      <div style="position:absolute;top:60px;right:15%;font-size:50px;opacity:.6">☁️</div>
-      <div style="position:absolute;top:30px;left:50%;font-size:35px;opacity:.5">☁️</div>
-      <div style="position:absolute;top:80px;left:25%;font-size:28px;opacity:.4">☁️</div>
-    </div>
-    
-    <!-- Sol -->
-    <div style="position:absolute;top:15px;right:20px;font-size:50px">☀️</div>
-    
-    <!-- Chão -->
-    <div style="position:absolute;top:40%;left:0;right:0;bottom:0;background:linear-gradient(180deg, #8FBC8F 0%, #6B8E23 100%)"></div>
-    
-    <!-- Lago -->
+     <!-- CÉU -->
     <div style="
       position:absolute;
-      bottom:15%;
+      inset:0;
+      background:linear-gradient(
+        180deg,
+        #BFE8F5 0%,
+        #DDF3F2 38%,
+        #B9D99B 38%,
+        #8DBB70 100%
+      );
+      z-index:0;
+    "></div>
+
+    <!-- NUVENS DELICADAS -->
+    <div style="
+      position:absolute;
+      top:75px;
+      left:12%;
+      width:75px;
+      height:25px;
+      background:rgba(255,255,255,.65);
+      border-radius:30px;
+      z-index:1;
+    ">
+      <div style="
+        position:absolute;
+        width:35px;
+        height:35px;
+        left:12px;
+        top:-18px;
+        background:rgba(255,255,255,.65);
+        border-radius:50%;
+      "></div>
+      <div style="
+        position:absolute;
+        width:30px;
+        height:30px;
+        right:12px;
+        top:-13px;
+        background:rgba(255,255,255,.65);
+        border-radius:50%;
+      "></div>
+    </div>
+
+    <div style="
+      position:absolute;
+      top:125px;
+      right:10%;
+      width:60px;
+      height:20px;
+      background:rgba(255,255,255,.5);
+      border-radius:30px;
+      z-index:1;
+    ">
+      <div style="
+        position:absolute;
+        width:28px;
+        height:28px;
+        left:8px;
+        top:-14px;
+        background:rgba(255,255,255,.5);
+        border-radius:50%;
+      "></div>
+    </div>
+
+    <!-- SOL SUAVE -->
+    <div style="
+      position:absolute;
+      top:72px;
+      right:28px;
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      background:#FFE9A8;
+      box-shadow:0 0 25px rgba(255,220,120,.45);
+      z-index:1;
+    "></div>
+
+    <!-- CAMADA DE FUNDO -->
+    <div style="
+      position:absolute;
+      left:-10%;
+      right:-10%;
+      top:34%;
+      height:20%;
+      background:#7EAB68;
+      border-radius:50% 50% 0 0;
+      opacity:.65;
+      z-index:2;
+    "></div>
+
+    <!-- ÁRVORES DO FUNDO -->
+    <div style="
+      position:absolute;
+      top:28%;
+      left:3%;
+      width:75px;
+      height:120px;
+      z-index:3;
+    ">
+      <div style="
+        position:absolute;
+        left:32px;
+        bottom:0;
+        width:12px;
+        height:65px;
+        background:#8B6242;
+        border-radius:8px;
+      "></div>
+
+      <div style="
+        position:absolute;
+        left:0;
+        top:0;
+        width:75px;
+        height:75px;
+        background:#60965D;
+        border-radius:48% 52% 45% 55%;
+      "></div>
+    </div>
+
+    <div style="
+      position:absolute;
+      top:30%;
+      right:2%;
+      width:85px;
+      height:125px;
+      z-index:3;
+    ">
+      <div style="
+        position:absolute;
+        left:36px;
+        bottom:0;
+        width:13px;
+        height:70px;
+        background:#8B6242;
+        border-radius:8px;
+      "></div>
+
+      <div style="
+        position:absolute;
+        left:0;
+        top:0;
+        width:85px;
+        height:82px;
+        background:#6A9D61;
+        border-radius:50% 45% 55% 48%;
+      "></div>
+    </div>
+
+    <!-- CHÃO PRINCIPAL -->
+    <div style="
+      position:absolute;
+      left:-5%;
+      right:-5%;
+      top:47%;
+      bottom:0;
+      background:#91BD73;
+      border-radius:50% 50% 0 0;
+      z-index:4;
+    "></div>
+
+    <!-- CAMINHO -->
+    <div style="
+      position:absolute;
+      left:50%;
+      top:48%;
+      transform:translateX(-50%);
+      width:110px;
+      height:52%;
+      background:#D9C69A;
+      border-radius:55px 55px 0 0;
+      opacity:.8;
+      z-index:5;
+    "></div>
+
+    <!-- LAGO CENTRAL -->
+    <div style="
+      position:absolute;
+      left:50%;
+      top:53%;
+      transform:translateX(-50%);
+      width:190px;
+      height:105px;
+      background:#79BBD0;
+      border-radius:50%;
+      box-shadow:
+        inset 0 -8px 15px rgba(54,112,130,.18),
+        0 5px 12px rgba(65,100,65,.15);
+      z-index:6;
+    ">
+      <!-- brilho da água -->
+      <div style="
+        position:absolute;
+        top:27px;
+        left:32px;
+        width:45px;
+        height:6px;
+        border-radius:50%;
+        background:rgba(255,255,255,.42);
+      "></div>
+
+      <div style="
+        position:absolute;
+        top:55px;
+        right:30px;
+        width:30px;
+        height:5px;
+        border-radius:50%;
+        background:rgba(255,255,255,.32);
+      "></div>
+
+      <!-- pequena margem -->
+      <div style="
+        position:absolute;
+        left:8px;
+        right:8px;
+        bottom:-3px;
+        height:12px;
+        border-radius:50%;
+        background:rgba(92,128,69,.22);
+      "></div>
+    </div>
+
+    <!-- ESPAÇO PARA LÓTUS -->
+    <div style="
+      position:absolute;
+      left:50%;
+      top:61%;
+      transform:translateX(-50%);
+      font-size:22px;
+      z-index:7;
+      opacity:.85;
+    ">✿</div>
+
+    <!-- PEQUENOS DETALHES DO GRAMADO -->
+    <div style="
+      position:absolute;
+      left:18%;
+      top:60%;
+      width:35px;
+      height:8px;
+      border-top:2px solid rgba(70,120,60,.45);
+      border-radius:50%;
+      transform:rotate(-12deg);
+      z-index:7;
+    "></div>
+
+    <div style="
+      position:absolute;
+      right:18%;
+      top:67%;
+      width:30px;
+      height:8px;
+      border-top:2px solid rgba(70,120,60,.4);
+      border-radius:50%;
+      transform:rotate(15deg);
+      z-index:7;
+    "></div>
+
+    <!-- TÍTULO -->
+    <div style="
+      position:absolute;
+      top:15px;
       left:50%;
       transform:translateX(-50%);
-      width:180px;
-      height:80px;
-      background:radial-gradient(ellipse at center, #4A90D9 0%, #2E5C8A 100%);
-      border-radius:50%;
-      box-shadow: inset 0 -10px 20px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.2);
+      text-align:center;
+      color:#31553A;
+      z-index:30;
+      text-shadow:0 1px 2px rgba(255,255,255,.5);
     ">
-      <div style="position:absolute;top:15px;left:30px;width:30px;height:6px;background:#7FB3E0;border-radius:50%;opacity:.6"></div>
-      <div style="position:absolute;top:35px;right:40px;width:20px;height:4px;background:#7FB3E0;border-radius:50%;opacity:.5"></div>
-      <div style="position:absolute;bottom:15px;left:50px;width:25px;height:5px;background:#7FB3E0;border-radius:50%;opacity:.4"></div>
-    </div>
-    
-    <!-- Árvores de fundo -->
-    <div style="position:absolute;top:35%;left:5%;font-size:60px">🌳</div>
-    <div style="position:absolute;top:35%;right:5%;font-size:60px">🌳</div>
-    
-    <!-- Título -->
-    <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.3)">
-      <h2 style="margin:0;font-size:22px">🌳 Parque</h2>
-      <p style="margin:4px 0;font-size:12px;opacity:.9">
+      <h2 style="
+        margin:0;
+        font-size:22px;
+        font-weight:700;
+      ">Parque</h2>
+
+      <p style="
+        margin:4px 0;
+        font-size:12px;
+        opacity:.8;
+      ">
         <span id="contagemParque"></span>
       </p>
     </div>
-    
-    <!-- Botão SAIR -->
+
+    <!-- BOTÃO SAIR -->
     <button id="sairParque" style="
       position:absolute;
       top:calc(env(safe-area-inset-top, 0px) + 15px);
       left:15px;
-      background:rgba(0,0,0,.4);
-      color:#fff;
-      border:0;
+      background:rgba(255,255,255,.72);
+      color:#31553A;
+      border:1px solid rgba(70,110,70,.15);
       border-radius:22px;
-      padding:10px 18px;
+      padding:10px 17px;
       font-size:15px;
       cursor:pointer;
-      z-index:20;
-      backdrop-filter: blur(8px);
+      z-index:40;
+      box-shadow:0 3px 10px rgba(60,90,60,.12);
+      backdrop-filter:blur(8px);
     ">← Sair</button>
 
-    <!-- Botão BOLSA -->
+    <!-- BOTÃO BOLSA -->
     <button id="btnBolsaParque" style="
       position:absolute;
       top:calc(env(safe-area-inset-top, 0px) + 15px);
       right:15px;
-      background:rgba(0,0,0,.4);
-      color:#fff;
-      border:0;
+      background:rgba(255,255,255,.72);
+      color:#31553A;
+      border:1px solid rgba(70,110,70,.15);
       border-radius:22px;
-      padding:10px 18px;
+      padding:10px 17px;
       font-size:15px;
       cursor:pointer;
-      z-index:20;
-      backdrop-filter: blur(8px);
+      z-index:40;
+      box-shadow:0 3px 10px rgba(60,90,60,.12);
+      backdrop-filter:blur(8px);
     ">🎒 Bolsa</button>
 
-    <!-- Canteiros -->
+    <!-- CANTEIROS -->
     <div id="canteiros" style="
       position:absolute;
-      bottom:0;left:0;right:0;
-      padding:15px;
+      left:0;
+      right:0;
+      bottom:0;
+      min-height:105px;
+      padding:12px;
+      padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);
       display:grid;
-      grid-template-columns:repeat(4,1fr);
+      grid-template-columns:repeat(4, minmax(65px,1fr));
       gap:8px;
-      padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 15px);
-      background:rgba(0,0,0,.2);
-      backdrop-filter: blur(8px);
-      max-height:45%;
+      background:linear-gradient(
+        180deg,
+        rgba(71,103,54,0) 0%,
+        rgba(71,103,54,.12) 25%,
+        rgba(71,103,54,.3) 100%
+      );
+      z-index:20;
       overflow-y:auto;
+      max-height:30%;
     "></div>
-  `;
+`;
+
   
   document.body.appendChild(parque);
   
