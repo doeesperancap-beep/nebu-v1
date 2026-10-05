@@ -165,10 +165,9 @@ const SOM = (() => {
 const N = {
   DO: 523.25, RE: 587.33, MI: 659.25, FA: 698.46,
   SOL: 783.99, LA: 880.00, SI: 987.77, DO2: 1046.50,
-  RE2: 1174.66,
+  RE2: 1174.66, MI2: 1318.51,
   DO_BAIXO: 261.63, MI_BAIXO: 329.63, SOL_BAIXO: 392.00
 };
-
 /* Destrava áudio no primeiro toque (iOS/Chrome) */
 addEventListener('pointerdown', () => SOM.destravar(), { once: true });
 
@@ -195,6 +194,19 @@ const DEFAULT = {
     olhos: null,
     fundo: null
   },
+  // Bolsa
+  bolsaPlantas: [],       // ← NOVO
+  bolsaBorboletas: [],    // ← NOVO
+  
+  // Parque
+  canteiros: [],          // ← NOVO (7 slots)
+  borboletasParque: [],   // ← NOVO (máx 3 visíveis)
+  
+  // Ciclo
+  ovos: [],               // ← NOVO
+  lagartas: [],           // ← NOVO
+  casulos: [],            // ← NOVO
+  
   last: Date.now()
 };
 /* ============ GERAR PREFERÊNCIAS ============ */
@@ -1620,6 +1632,36 @@ function pararMusicaMercado() {
     musicaMercado = null;
   }
 }
+/* ============ SOM DO JARDIM ============ */
+let somJardim = null;
+
+function tocarSomJardim() {
+  if (somJardim) return;
+  
+  // Melodia suave, tipo passarinhos + vento
+  const melodia = [
+    N.DO2, N.MI2 || N.DO2, N.SOL, N.MI,
+    N.DO2, N.RE2, N.SOL, N.MI,
+    N.FA, N.LA, N.DO2, N.LA,
+    N.SOL, N.MI, N.DO, N.MI
+  ];
+  
+  let i = 0;
+  somJardim = setInterval(() => {
+    // Notas aleatórias tipo passarinho
+    if (Math.random() < 0.3) {
+      SOM.nota(melodia[i % melodia.length], 0.4, 'sine', 0.03);
+    }
+    i++;
+  }, 800);
+}
+
+function pararSomJardim() {
+  if (somJardim) {
+    clearInterval(somJardim);
+    somJardim = null;
+  }
+}
 
 function painelLoja() {
   carrinho = {};
@@ -2132,6 +2174,461 @@ function clicarItemBoutique(emoji, aba) {
   say('Comprei! ✨');
   aplicarVisual();
   renderBoutique();
+}
+/* ============ BOLSA ============ */
+function abrirBolsa() {
+  const plantas = S.bolsaPlantas || [];
+  const borboletas = S.bolsaBorboletas || [];
+  const total = plantas.length + borboletas.length;
+  const ocupado = total;
+  const cheio = ocupado >= BOLSA_MAX;
+
+  let html = '<h3>🎒 Bolsa</h3>';
+  html += `<p style="font-size:13px;opacity:.7;margin:0 0 12px">
+    ${ocupado}/${BOLSA_MAX} itens ${cheio ? '· <span style="color:#ff6666">CHEIA</span>' : ''}
+  </p>`;
+
+  // Abas
+  html += `
+    <div style="display:flex;gap:6px;margin:12px 0">
+      <button data-bolsa-aba="plantas" style="
+        flex:1;padding:10px;font-size:14px;
+        background:#f7d9e4;color:#1b1824;
+        border:0;border-radius:10px;
+      ">🌱 Plantas (${plantas.length})</button>
+      <button data-bolsa-aba="borboletas" style="
+        flex:1;padding:10px;font-size:14px;
+        background:#ffffff1a;color:#fff;
+        border:0;border-radius:10px;
+      ">🦋 Borboletas (${borboletas.length})</button>
+    </div>
+  `;
+
+  // Conteúdo da aba (plantas por padrão)
+  html += renderBolsaConteudo('plantas');
+
+  panel(html);
+
+  // Handlers
+  setTimeout(() => {
+    // Abas
+    document.querySelectorAll('[data-bolsa-aba]').forEach(b => {
+      b.onclick = () => {
+        const aba = b.dataset.bolsaAba;
+        // Recria o painel com a aba escolhida
+        abrirBolsaComAba(aba);
+      };
+    });
+    
+    // Itens (excluir)
+    document.querySelectorAll('[data-bolsa-idx]').forEach(el => {
+      el.onclick = () => {
+        const tipo = el.dataset.bolsaTipo;
+        const idx = Number(el.dataset.bolsaIdx);
+        excluirItemBolsa(tipo, idx);
+      };
+    });
+  }, 100);
+}
+
+function abrirBolsaComAba(aba) {
+  const plantas = S.bolsaPlantas || [];
+  const borboletas = S.bolsaBorboletas || [];
+  const total = plantas.length + borboletas.length;
+
+  let html = '<h3>🎒 Bolsa</h3>';
+  html += `<p style="font-size:13px;opacity:.7;margin:0 0 12px">
+    ${total}/${BOLSA_MAX} itens
+  </p>`;
+
+  html += `
+    <div style="display:flex;gap:6px;margin:12px 0">
+      <button data-bolsa-aba="plantas" style="
+        flex:1;padding:10px;font-size:14px;
+        background:${aba === 'plantas' ? '#f7d9e4' : '#ffffff1a'};
+        color:${aba === 'plantas' ? '#1b1824' : '#fff'};
+        border:0;border-radius:10px;
+      ">🌱 Plantas (${plantas.length})</button>
+      <button data-bolsa-aba="borboletas" style="
+        flex:1;padding:10px;font-size:14px;
+        background:${aba === 'borboletas' ? '#f7d9e4' : '#ffffff1a'};
+        color:${aba === 'borboletas' ? '#1b1824' : '#fff'};
+        border:0;border-radius:10px;
+      ">🦋 Borboletas (${borboletas.length})</button>
+    </div>
+  `;
+
+  html += renderBolsaConteudo(aba);
+
+  panel(html);
+
+  setTimeout(() => {
+    document.querySelectorAll('[data-bolsa-aba]').forEach(b => {
+      b.onclick = () => abrirBolsaComAba(b.dataset.bolsaAba);
+    });
+    document.querySelectorAll('[data-bolsa-idx]').forEach(el => {
+      el.onclick = () => excluirItemBolsa(el.dataset.bolsaTipo, Number(el.dataset.bolsaIdx));
+    });
+  }, 100);
+}
+
+function renderBolsaConteudo(tipo) {
+  if (tipo === 'plantas') {
+    const plantas = S.bolsaPlantas || [];
+    if (plantas.length === 0) {
+      return '<p style="opacity:.5;text-align:center;padding:20px">Nenhuma planta ainda...</p>';
+    }
+    let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    plantas.forEach((semente, i) => {
+      const esp = ESPECIES.plantas[semente];
+      const svg = svgPlanta(semente, 100);
+      html += `
+        <div class="item-bolsa" data-bolsa-tipo="plantas" data-bolsa-idx="${i}" style="
+          background:rgba(255,255,255,.1);
+          border-radius:12px;padding:8px;text-align:center;cursor:pointer;
+          border:2px solid rgba(255,255,255,.2);
+        ">
+          <div style="width:60px;height:60px;margin:0 auto">${svg}</div>
+          <div style="font-size:10px;margin-top:4px">${esp?.nome || semente}</div>
+          <div style="font-size:9px;opacity:.5;margin-top:2px">toque p/ excluir</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    return html;
+  }
+  
+  if (tipo === 'borboletas') {
+    const borboletas = S.bolsaBorboletas || [];
+    if (borboletas.length === 0) {
+      return '<p style="opacity:.5;text-align:center;padding:20px">Nenhuma borboleta ainda...</p>';
+    }
+    let html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+    borboletas.forEach((tipoB, i) => {
+      const esp = ESPECIES.borboletas[tipoB];
+      const svg = SVG_BORBOLETA[tipoB] || '';
+      html += `
+        <div class="item-bolsa" data-bolsa-tipo="borboletas" data-bolsa-idx="${i}" style="
+          background:rgba(255,255,255,.1);
+          border-radius:12px;padding:8px;text-align:center;cursor:pointer;
+          border:2px solid rgba(255,255,255,.2);
+        ">
+          <div style="width:60px;height:50px;margin:0 auto">${svg}</div>
+          <div style="font-size:10px;margin-top:4px">${esp?.nome || tipoB}</div>
+          <div style="font-size:9px;opacity:.5;margin-top:2px">toque p/ excluir</div>
+        </div>
+      `;
+    });
+    html += '</div>';
+    return html;
+  }
+  
+  return '';
+}
+
+function excluirItemBolsa(tipo, idx) {
+  const item = tipo === 'plantas' ? S.bolsaPlantas[idx] : S.bolsaBorboletas[idx];
+  if (!item) return;
+  
+  if (confirm(`Excluir ${item}?`)) {
+    if (tipo === 'plantas') S.bolsaPlantas.splice(idx, 1);
+    else S.bolsaBorboletas.splice(idx, 1);
+    save();
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+    say('Excluí! 🗑️');
+    abrirBolsaComAba(tipo);
+  }
+}
+/* ============ PARQUE ============ */
+function abrirParque() {
+  tocarSomJardim();
+  
+  const parque = document.createElement('div');
+  parque.id = 'telaParque';
+  parque.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 40%, #8FBC8F 40%, #6B8E23 100%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    color: #fff;
+    overflow: hidden;
+    animation: fadeIn .4s;
+  `;
+  
+  // Estrelinhas / nuvens no céu
+  parque.innerHTML = `
+    <!-- Céu -->
+    <div style="position:absolute;top:0;left:0;right:0;height:40%;overflow:hidden">
+      <div style="position:absolute;top:20px;left:10%;font-size:40px;opacity:.7">☁️</div>
+      <div style="position:absolute;top:60px;right:15%;font-size:50px;opacity:.6">☁️</div>
+      <div style="position:absolute;top:30px;left:50%;font-size:35px;opacity:.5">☁️</div>
+      <div style="position:absolute;top:80px;left:25%;font-size:28px;opacity:.4">☁️</div>
+    </div>
+    
+    <!-- Sol -->
+    <div style="position:absolute;top:15px;right:20px;font-size:50px">☀️</div>
+    
+    <!-- Chão -->
+    <div style="position:absolute;top:40%;left:0;right:0;bottom:0;background:linear-gradient(180deg, #8FBC8F 0%, #6B8E23 100%)"></div>
+    
+    <!-- Lago -->
+    <div style="
+      position:absolute;
+      bottom:15%;
+      left:50%;
+      transform:translateX(-50%);
+      width:180px;
+      height:80px;
+      background:radial-gradient(ellipse at center, #4A90D9 0%, #2E5C8A 100%);
+      border-radius:50%;
+      box-shadow: inset 0 -10px 20px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.2);
+    ">
+      <div style="position:absolute;top:15px;left:30px;width:30px;height:6px;background:#7FB3E0;border-radius:50%;opacity:.6"></div>
+      <div style="position:absolute;top:35px;right:40px;width:20px;height:4px;background:#7FB3E0;border-radius:50%;opacity:.5"></div>
+      <div style="position:absolute;bottom:15px;left:50px;width:25px;height:5px;background:#7FB3E0;border-radius:50%;opacity:.4"></div>
+    </div>
+    
+    <!-- Árvores de fundo -->
+    <div style="position:absolute;top:35%;left:5%;font-size:60px">🌳</div>
+    <div style="position:absolute;top:35%;right:5%;font-size:60px">🌳</div>
+    
+    <!-- Título -->
+    <div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.3)">
+      <h2 style="margin:0;font-size:22px">🌳 Parque</h2>
+      <p style="margin:4px 0;font-size:12px;opacity:.9">
+        <span id="contagemParque"></span>
+      </p>
+    </div>
+    
+    <!-- Botão SAIR -->
+    <button id="sairParque" style="
+      position:absolute;
+      top:calc(env(safe-area-inset-top, 0px) + 15px);
+      left:15px;
+      background:rgba(0,0,0,.4);
+      color:#fff;
+      border:0;
+      border-radius:22px;
+      padding:10px 18px;
+      font-size:15px;
+      cursor:pointer;
+      z-index:20;
+      backdrop-filter: blur(8px);
+    ">← Sair</button>
+    
+    <!-- Canteiros -->
+    <div id="canteiros" style="
+      position:absolute;
+      bottom:0;left:0;right:0;
+      padding:15px;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 15px);
+      background:rgba(0,0,0,.2);
+      backdrop-filter: blur(8px);
+      max-height:45%;
+      overflow-y:auto;
+    "></div>
+  `;
+  
+  document.body.appendChild(parque);
+  
+  // Renderiza canteiros
+  renderCanteiros();
+  
+  // Botão sair
+  setTimeout(() => {
+    const btnSair = document.getElementById('sairParque');
+    if (btnSair) {
+      btnSair.onclick = () => {
+        pararSomJardim();
+        parque.remove();
+      };
+    }
+  }, 100);
+}
+
+function renderCanteiros() {
+  const container = document.getElementById('canteiros');
+  if (!container) return;
+  
+  const canteiros = S.canteiros || [];
+  const bolsa = S.bolsaPlantas || [];
+  const max = 7;
+  
+  let html = '';
+  for (let i = 0; i < max; i++) {
+    const canteiro = canteiros[i];
+    
+    if (canteiro) {
+      // Canteiro com planta
+      const svg = svgPlanta(canteiro.emoji, canteiro.crescendo);
+      html += `
+        <div class="canteiro-cheio" data-slot="${i}" style="
+          background:rgba(255,255,255,.15);
+          border-radius:12px;
+          padding:8px 4px;
+          text-align:center;
+          cursor:pointer;
+          border:2px solid rgba(255,255,255,.3);
+        ">
+          <div style="width:100%;height:60px">${svg}</div>
+          <div style="font-size:10px;opacity:.9;margin-top:4px">${canteiro.crescendo}%</div>
+        </div>
+      `;
+    } else {
+      // Canteiro vazio
+      html += `
+        <div class="canteiro-vazio" data-slot="${i}" style="
+          background:rgba(0,0,0,.2);
+          border-radius:12px;
+          padding:8px 4px;
+          text-align:center;
+          cursor:pointer;
+          border:2px dashed rgba(255,255,255,.3);
+        ">
+          <div style="font-size:30px;opacity:.4;padding:15px 0">+</div>
+          <div style="font-size:10px;opacity:.6">plantar</div>
+        </div>
+      `;
+    }
+  }
+  
+  container.innerHTML = html;
+  
+  // Atualiza contagem
+  const contagem = document.getElementById('contagemParque');
+  if (contagem) {
+    const ocupados = (S.canteiros || []).filter(c => c).length;
+    contagem.textContent = `${ocupados}/${max} plantas · 🦋 ${(S.bolsaBorboletas || []).length} na bolsa`;
+  }
+  
+  // Handlers
+  setTimeout(() => {
+    document.querySelectorAll('.canteiro-vazio').forEach(el => {
+      el.onclick = () => {
+        const slot = Number(el.dataset.slot);
+        plantarNoCanteiro(slot);
+      };
+    });
+    document.querySelectorAll('.canteiro-cheio').forEach(el => {
+      el.onclick = () => {
+        const slot = Number(el.dataset.slot);
+        regarCanteiro(slot);
+      };
+    });
+  }, 100);
+}
+
+function plantarNoCanteiro(slot) {
+  const bolsa = S.bolsaPlantas || [];
+  
+  if (bolsa.length === 0) {
+    say('Bolsa vazia! Ganhe sementes primeiro 🌱');
+    return;
+  }
+  
+  // Se só tem 1 semente, planta direto
+  if (bolsa.length === 1) {
+    S.canteiros = S.canteiros || [];
+    S.canteiros[slot] = {
+      emoji: bolsa[0],
+      crescendo: 0,
+      plantadaEm: Date.now(),
+      ultimaRega: 0,
+      regasHoje: 0
+    };
+    // Remove da bolsa
+    S.bolsaPlantas = bolsa.slice(1);
+    save();
+    SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+    say('Plantei! 🌱');
+    renderCanteiros();
+    return;
+  }
+  
+  // Várias sementes: abre painel de escolha
+  let html = '<h3>🌱 Escolher semente</h3>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">';
+  bolsa.forEach((semente, idx) => {
+    const esp = ESPECIES.plantas[semente];
+    const svg = svgPlanta(semente, 100);
+    html += `
+      <div class="escolher-semente" data-idx="${idx}" style="
+        background:rgba(255,255,255,.15);
+        border-radius:12px;
+        padding:8px;
+        text-align:center;
+        cursor:pointer;
+      ">
+        <div style="width:60px;height:60px;margin:0 auto">${svg}</div>
+        <div style="font-size:10px;margin-top:4px">${esp?.nome || semente}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  panel(html);
+  
+  setTimeout(() => {
+    document.querySelectorAll('.escolher-semente').forEach(el => {
+      el.onclick = () => {
+        const idx = Number(el.dataset.idx);
+        const semente = S.bolsaPlantas[idx];
+        S.canteiros = S.canteiros || [];
+        S.canteiros[slot] = {
+          emoji: semente,
+          crescendo: 0,
+          plantadaEm: Date.now(),
+          ultimaRega: 0,
+          regasHoje: 0
+        };
+        S.bolsaPlantas.splice(idx, 1);
+        save();
+        SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+        say('Plantei! 🌱');
+        P.classList.remove('on');
+        renderCanteiros();
+      };
+    });
+  }, 100);
+}
+
+function regarCanteiro(slot) {
+  const canteiro = (S.canteiros || [])[slot];
+  if (!canteiro) return;
+  
+  // Checa regas do dia
+  const hoje = new Date().toDateString();
+  const ultimaRega = canteiro.ultimaRegaData || '';
+  
+  if (ultimaRega !== hoje) {
+    canteiro.regasHoje = 0;
+    canteiro.ultimaRegaData = hoje;
+  }
+  
+  if (canteiro.regasHoje >= 3) {
+    say('Já reguei 3 vezes hoje 💧');
+    return;
+  }
+  
+  if (canteiro.crescendo >= 100) {
+    say('Já tá pronta! 🌸');
+    return;
+  }
+  
+  canteiro.regasHoje++;
+  canteiro.crescendo = Math.min(100, canteiro.crescendo + 10);
+  canteiro.ultimaRega = Date.now();
+  S.canteiros[slot] = canteiro;
+  save();
+  
+  SOM.melodia([N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.08);
+  say('Reguei! 💧 +10%');
+  renderCanteiros();
 }
 /* ============ BOAS-VINDAS ============ */
 function welcomePanel() {
