@@ -2703,15 +2703,15 @@ function equiparSemente(slot, idxSemente) {
   if (!semente) return;
   
   S.canteiros = S.canteiros || [];
-  S.canteiros[slot] = {
+   S.canteiros[slot] = {
     semente: semente,
     sementeIdx: idxSemente,
     crescendo: 0,
     regasHoje: 0,
     ultimaRegaData: '',
-    plantadaEm: Date.now()
+    plantadaEm: Date.now(),
+    ultimoCrescimento: Date.now()
   };
-  
   save();
   SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
   say('Plantei! 🌱');
@@ -3372,15 +3372,13 @@ function plantarNoCanteiro(slot) {
   }
   
   // Se só tem 1 semente, planta direto
-  if (bolsa.length === 1) {
-    S.canteiros = S.canteiros || [];
-    S.canteiros[slot] = {
+      S.canteiros[slot] = {
       semente: bolsa[0],
       sementeIdx: 0,
       crescendo: 0,
       regasHoje: 0,
       ultimaRegaData: '',
-      plantadaEm: Date.now()
+      plantadaEm: Date.now(),
       ultimoCrescimento: Date.now()
     };
     save();
@@ -3428,7 +3426,8 @@ function plantarNoCanteiro(slot) {
           crescendo: 0,
           regasHoje: 0,
           ultimaRegaData: '',
-          plantadaEm: Date.now()
+          plantadaEm: Date.now(),
+          ultimoCrescimento: Date.now()
         };
         save();
         SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
