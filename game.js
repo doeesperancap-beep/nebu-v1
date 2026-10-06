@@ -1934,7 +1934,158 @@ function abrirTelaSpa() {
 }
 function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
 function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
-function painelParque()    { panel('<h3>🌳 Parque</h3><p style="opacity:.7">Em breve! Vou passear aqui. 🌿</p>'); }
+/* ============ PARQUE (tela cheia) ============ */
+function painelParque() {
+  abrirParque();
+}
+
+function abrirParque() {
+  // Se a tela já existe, só mostra
+  let parque = document.getElementById('parque');
+  if (!parque) {
+    parque = document.createElement('div');
+    parque.id = 'parque';
+    parque.innerHTML = `
+      <div id="parqueCeu"></div>
+      <div id="parqueChao"></div>
+
+      <!-- Ipê amarelo (canto direito, grande) -->
+      <svg id="parqueIpe" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+        <!-- Tronco -->
+        <path d="M95 280 Q95 200 92 160 Q90 140 88 120" stroke="#6b4a2b" stroke-width="14" fill="none" stroke-linecap="round"/>
+        <path d="M100 200 Q120 180 135 165" stroke="#6b4a2b" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M92 170 Q70 155 58 140" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <!-- Copa (3 círculos amarelos empilhados) -->
+        <circle cx="95" cy="95" r="55" fill="#f4d03f"/>
+        <circle cx="60" cy="115" r="40" fill="#f7dc6f"/>
+        <circle cx="130" cy="115" r="42" fill="#f7dc6f"/>
+        <circle cx="95" cy="65" r="38" fill="#f9e79f"/>
+        <circle cx="70" cy="80" r="8" fill="#fcf3cf" opacity=".7"/>
+        <circle cx="120" cy="90" r="6" fill="#fcf3cf" opacity=".7"/>
+        <circle cx="90" cy="110" r="7" fill="#fcf3cf" opacity=".7"/>
+        <circle cx="135" cy="70" r="5" fill="#fcf3cf" opacity=".6"/>
+      </svg>
+
+      <!-- Juazeiro (canto esquerdo, médio) -->
+      <svg id="parqueJuazeiro" viewBox="0 0 160 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Tronco -->
+        <path d="M78 200 Q78 150 76 120" stroke="#5a3d24" stroke-width="10" fill="none" stroke-linecap="round"/>
+        <path d="M80 150 Q60 135 50 120" stroke="#5a3d24" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <path d="M76 130 Q95 115 105 100" stroke="#5a3d24" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <!-- Copa (verde escuro) -->
+        <circle cx="78" cy="70" r="42" fill="#3d6b35"/>
+        <circle cx="48" cy="90" r="32" fill="#4a7c3f"/>
+        <circle cx="110" cy="85" r="34" fill="#4a7c3f"/>
+        <circle cx="78" cy="50" r="28" fill="#5a8f4a"/>
+        <circle cx="60" cy="75" r="5" fill="#7fb069" opacity=".6"/>
+        <circle cx="95" cy="65" r="4" fill="#7fb069" opacity=".6"/>
+      </svg>
+
+      <!-- Amarílis (canto direito, pequena) -->
+      <svg id="parqueAmarilis" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- Caule -->
+        <path d="M40 120 Q40 80 40 50" stroke="#4a7c3f" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <!-- Folhas -->
+        <path d="M40 100 Q25 90 20 75 Q30 85 40 95" fill="#5a8f4a"/>
+        <path d="M40 90 Q55 80 60 65 Q50 75 40 85" fill="#5a8f4a"/>
+        <!-- Flor (6 pétalas) -->
+        <ellipse cx="40" cy="35" rx="9" ry="18" fill="#e74c3c"/>
+        <ellipse cx="40" cy="35" rx="18" ry="9" fill="#ec7063"/>
+        <ellipse cx="40" cy="35" rx="9" ry="18" fill="#e74c3c" transform="rotate(45 40 35)"/>
+        <ellipse cx="40" cy="35" rx="9" ry="18" fill="#e74c3c" transform="rotate(-45 40 35)"/>
+        <circle cx="40" cy="35" r="6" fill="#f4d03f"/>
+        <circle cx="37" cy="32" r="2" fill="#fff" opacity=".7"/>
+      </svg>
+
+      <button id="parqueVoltar">← Voltar</button>
+    `;
+
+    // Estilos (tudo dentro do JS, igual a Cidade)
+    parque.style.cssText = `
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      overflow: hidden;
+    `;
+    document.body.appendChild(parque);
+
+    // Céu
+    const ceu = document.getElementById('parqueCeu');
+    ceu.style.cssText = `
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #87ceeb 0%, #c9e8f5 60%, #e8f4d9 100%);
+    `;
+
+    // Chão (colina)
+    const chao = document.getElementById('parqueChao');
+    chao.style.cssText = `
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 38%;
+      background: linear-gradient(180deg, #7bc47f 0%, #5a9e5e 100%);
+      border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+    `;
+
+    // Ipê (canto superior direito)
+    const ipe = document.getElementById('parqueIpe');
+    ipe.style.cssText = `
+      position: absolute;
+      top: 8%;
+      right: 4%;
+      width: 38%;
+      max-width: 220px;
+      height: auto;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,.15));
+    `;
+
+    // Juazeiro (canto inferior esquerdo)
+    const juazeiro = document.getElementById('parqueJuazeiro');
+    juazeiro.style.cssText = `
+      position: absolute;
+      bottom: 22%;
+      left: 4%;
+      width: 26%;
+      max-width: 150px;
+      height: auto;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.15));
+    `;
+
+    // Amarílis (canto inferior direito)
+    const amarilis = document.getElementById('parqueAmarilis');
+    amarilis.style.cssText = `
+      position: absolute;
+      bottom: 20%;
+      right: 12%;
+      width: 14%;
+      max-width: 80px;
+      height: auto;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,.15));
+    `;
+
+    // Botão Voltar
+    const voltar = document.getElementById('parqueVoltar');
+    voltar.style.cssText = `
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(27, 24, 36, .85);
+      color: #fff;
+      border: 0;
+      border-radius: 22px;
+      padding: 10px 18px;
+      font-size: 15px;
+      cursor: pointer;
+      z-index: 30;
+    `;
+    voltar.onclick = () => {
+      parque.classList.remove('on');
+    };
+  }
+
+  parque.classList.add('on');
+}
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
 P.onclick = e => {
   const b = e.target.closest('button');
