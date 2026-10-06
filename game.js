@@ -2080,11 +2080,11 @@ function abrirParque() {
       z-index: 30;
     `;
     voltar.onclick = () => {
-      parque.classList.remove('on');
+  parque.style.display = 'none';
     };
   }
 
-  parque.classList.add('on');
+  parque.style.display = 'block';
 }
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
 P.onclick = e => {
