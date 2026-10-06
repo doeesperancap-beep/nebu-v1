@@ -2238,7 +2238,7 @@ $('bCuidar').onclick = () => panel(
 $('bBrincar').onclick = () => panel(
   '<h3>🎮 Brincar</h3><button data-g="f">🍎 Cesta de Frutas</button><button data-g="b">🦋 Borboletas</button><button data-x="dance">💃 Dançar</button>'
 );
-$('bMundo').onclick = abrirMundo;
+$('bMundo').onclick = mundo;
 $('bXarope').onclick = xarope;
 
 /* ============ 13. LOOP PRINCIPAL ============ */
