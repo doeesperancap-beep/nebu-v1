@@ -1487,7 +1487,8 @@ function startBath() {
     draw();
   };
 }
-/* ============ JOGO DO DINO ============ */
+
+/* ============ JOGO DA NÉBULA (desvia dos bolos) ============ */
 function startDino() {
   P.classList.remove('on');
   gOn = 1;
@@ -1498,27 +1499,30 @@ function startDino() {
   document.body.appendChild(c);
   const x = c.getContext('2d');
 
-  // Dino
-  const dino = { x: 60, y: 0, vy: 0, tam: 50, noChao: true };
   const chao = c.height - 100;
-  dino.y = chao;
 
-  // Cactos
-  let cactos = [];
-  let proxCacto = 0;
+  // Nébula (só os olhos)
+  const nebo = {
+    x: 80,
+    y: chao,
+    vy: 0,
+    tam: 50,
+    noChao: true
+  };
 
-  // Pontuação
+  let bolos = [];
+  let proxBolo = 0;
+
   let pontos = 0;
-  let pulados = 0;
   let t0 = Date.now();
   let terminou = false;
 
-  // Pular
   const pular = () => {
-    if (dino.noChao && !terminou) {
-      dino.vy = -14;
-      dino.noChao = false;
-      SOM.nota(600, 0.1, 'sine', 0.1);
+    if (nebo.noChao && !terminou) {
+      nebo.vy = -19;
+      nebo.noChao = false;
+      SOM.nota(700, 0.08, 'sine', 0.1);
+      vib(20);
     }
   };
   c.onpointerdown = pular;
@@ -1526,39 +1530,38 @@ function startDino() {
   const iv = setInterval(() => {
     if (terminou) return;
     const n = Date.now();
-    const dt = 0.05;   // ~50ms por frame
 
-    // Gravidade
-    dino.vy += 0.6;
-    dino.y += dino.vy;
-    if (dino.y >= chao) {
-      dino.y = chao;
-      dino.vy = 0;
-      dino.noChao = true;
+    // Física
+    nebo.vy += 0.9;
+    nebo.y += nebo.vy;
+    if (nebo.y >= chao) {
+      nebo.y = chao;
+      nebo.vy = 0;
+      nebo.noChao = true;
     }
 
-    // Cria cactos
-    if (n > proxCacto) {
-      cactos.push({
+    // Cria bolos
+    if (n > proxBolo) {
+      bolos.push({
         x: c.width + 20,
-        tam: 40 + Math.random() * 20
+        tam: 55
       });
-      // Intervalo diminui com o tempo (fica mais difícil)
+      // Começa devagar (2.2s) e vai apertando bem devagar
       const tempoJogo = (n - t0) / 1000;
-      const intervalo = Math.max(700, 1400 - tempoJogo * 30);
-      proxCacto = n + intervalo;
+      const intervalo = Math.max(1100, 2200 - tempoJogo * 40);
+      proxBolo = n + intervalo;
     }
 
-    // Move cactos
-    const vel = 5 + (n - t0) / 15000;   // acelera devagar
-    cactos = cactos.filter(k => {
+    // Move bolos
+    const vel = 5.5 + (n - t0) / 25000;
+    bolos = bolos.filter(k => {
       k.x -= vel;
 
-      // Colisão?
+      // Colisão
       const bateu =
-        dino.x + 40 > k.x &&
-        dino.x < k.x + k.tam &&
-        dino.y + 40 > chao - k.tam + 10;
+        nebo.x + 30 > k.x &&
+        nebo.x - 20 < k.x + 40 &&
+        nebo.y + 20 > chao - 20;
 
       if (bateu) {
         terminou = true;
@@ -1568,24 +1571,23 @@ function startDino() {
 
         S.humor = clamp(S.humor - 3);
         SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
-        say('Ai! Bati no cacto 😢');
+        say('Ai! Bati no bolo 😢');
         if (pontos > 0) ganharMoedas(pontos);
         save();
         return false;
       }
 
-      // Passou? Conta ponto
-      if (k.x < dino.x - 20 && !k._contado) {
+      // Passou? Conta
+      if (k.x < nebo.x - 40 && !k._contado) {
         k._contado = true;
         pontos += 1;
-        pulados++;
-        SOM.nota(800, 0.06, 'sine', 0.08);
+        SOM.nota(900, 0.06, 'sine', 0.08);
       }
 
       return k.x > -100;
     });
 
-    // Desenha
+    // ---------- DESENHO ----------
     x.clearRect(0, 0, c.width, c.height);
 
     // Chão
@@ -1599,30 +1601,65 @@ function startDino() {
     x.textAlign = 'right';
     x.fillText('☀️', c.width - 30, 70);
 
-    // Nuvens
-    x.font = '40px serif';
+    // Nuvens passando
     x.textAlign = 'center';
     x.fillText('☁️', (n / 60) % (c.width + 100) - 50, 100);
     x.fillText('☁️', (n / 90) % (c.width + 100) - 50, 150);
 
-    // Dino
-    x.font = '60px serif';
-    x.textAlign = 'center';
-    x.fillText('🦖', dino.x + 20, dino.y + 30);
-
-    // Cactos
-    x.font = '50px serif';
-    cactos.forEach(k => {
-      x.fillText('🌵', k.x + k.tam / 2, chao + 30);
+    // Bolos
+    x.font = '55px serif';
+    bolos.forEach(k => {
+      x.fillText('🍰', k.x + 25, chao + 30);
     });
+
+    // Nébula (só os olhos)
+    const ex = nebo.x;
+    const ey = nebo.y - 35;
+
+    // Olhos (elipses cor-de-rosa)
+    x.fillStyle = '#f7d9e4';
+    x.beginPath();
+    x.ellipse(ex - 14, ey, 14, 16, 0, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
+    x.fill();
+
+    // Contorno dos olhos
+    x.strokeStyle = '#5d4f9e';
+    x.lineWidth = 3;
+    x.beginPath();
+    x.ellipse(ex - 14, ey, 14, 16, 0, 0, 7);
+    x.stroke();
+    x.beginPath();
+    x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
+    x.stroke();
+
+    // Brilhinho
+    x.fillStyle = '#fff';
+    x.beginPath();
+    x.arc(ex - 18, ey - 6, 3, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.arc(ex + 10, ey - 6, 3, 0, 7);
+    x.fill();
+
+    // Bochechas rosas
+    x.fillStyle = 'rgba(242, 157, 181, .5)';
+    x.beginPath();
+    x.ellipse(ex - 30, ey + 10, 7, 4, 0, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.ellipse(ex + 30, ey + 10, 7, 4, 0, 0, 7);
+    x.fill();
 
     // HUD
     x.font = '20px sans-serif';
     x.fillStyle = '#5d4f9e';
     x.textAlign = 'left';
-    x.fillText('🌵 ' + pontos + '   ⏱ ' + Math.max(0, 20 - Math.round((n - t0) / 1000)), 20, 40);
+    x.fillText('🍰 ' + pontos + '   ⏱ ' + Math.max(0, 20 - Math.round((n - t0) / 1000)), 20, 40);
 
-    // Fim de jogo (tempo)
+    // Fim (tempo)
     if (n - t0 > 20000) {
       terminou = true;
       clearInterval(iv);
@@ -1633,13 +1670,11 @@ function startDino() {
       S.energia = clamp(S.energia - 3);
       ganharMoedas(pontos);
       SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
-      say('Correu bem! +' + pontos + ' 🪙');
+      say('Desviou de ' + pontos + ' bolos! +' + pontos + ' 🪙');
       save();
     }
   }, 50);
 }
-
-/* --- Dança --- */
 
 /* --- Dança --- */
 const STY = {
