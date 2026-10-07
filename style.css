@@ -882,3 +882,111 @@ body[data-m=dizzy] .eye {
 .ing-qtd:empty {
   display: none;
 }
+
+/* ============================================================
+   TELA DE PREPARO (passo a passo)
+   ============================================================ */
+
+#prep-tela {
+  text-align: center;
+  padding: 4px 0;
+}
+
+#prep-topo h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: #5d4f9e;
+  font-weight: 700;
+}
+#prep-topo p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #5d4f9e;
+  opacity: .6;
+  font-weight: 600;
+}
+
+#prep-bolinhas {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.prep-bola {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e8d5f0;
+  transition: background .3s, transform .3s;
+}
+.prep-bola.ok {
+  background: #b8dfd0;
+  transform: scale(1.15);
+}
+
+#prep-texto {
+  font-size: 15px;
+  color: #5d4f9e;
+  font-weight: 600;
+  margin: 0 0 20px;
+  min-height: 40px;
+  line-height: 1.4;
+  padding: 0 10px;
+}
+
+.prep-acao {
+  display: block;
+  margin: 0 auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #d8c4ec;
+  background: #ffffff;
+  font-size: 54px;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  box-shadow: 0 6px 20px rgba(93, 79, 158, .15);
+  font-family: inherit;
+  line-height: 1;
+  padding: 0;
+}
+.prep-acao:active {
+  transform: scale(.92);
+  box-shadow: 0 3px 10px rgba(93, 79, 158, .2);
+}
+.prep-acao:hover {
+  box-shadow: 0 8px 24px rgba(93, 79, 158, .25);
+}
+
+#prep-cancelar {
+  margin-top: 20px;
+  font-size: 13px;
+  padding: 10px;
+  opacity: .7;
+}
+
+/* ---------- FORNO ---------- */
+#forno-tela {
+  text-align: center;
+  padding: 20px 0;
+}
+#forno-emoji {
+  font-size: 80px;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+#forno-emoji.pulse {
+  animation: pulse-aviso 1s ease-in-out infinite;
+}
+#forno-tela h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  color: #5d4f9e;
+  font-weight: 700;
+}
+#forno-tela p {
+  margin: 0 0 18px;
+  font-size: 14px;
+  color: #5d4f9e;
+  opacity: .7;
+}
