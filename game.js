@@ -2318,14 +2318,178 @@ function clicarReceita(id) {
 
   docMostrarConteudo(htmlOk);
 
-  setTimeout(() => {
+   setTimeout(() => {
     document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
     document.getElementById('btnComecar').onclick = () => {
-      // Por enquanto, só mostra um aviso
-      // No Bloco 5 a gente faz a tela de preparo
-      say('Em breve! 👩‍🍳');
-      SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+      iniciarPreparo(id);
     };
+  }, 50);
+}
+
+/* ============ TELA DE PREPARO (passo a passo) ============ */
+
+let preparoAtual = null;   // guarda { id, passo }
+
+function iniciarPreparo(id) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  preparoAtual = { id, passo: 0 };
+  renderPreparo();
+}
+
+function renderPreparo() {
+  if (!preparoAtual) return;
+  const r = RECEITAS[preparoAtual.id];
+  const passo = r.passos[preparoAtual.passo];
+  const total = r.passos.length;
+  const num = preparoAtual.passo + 1;
+
+  // Barra de progresso
+  let bolinhas = '';
+  for (let i = 0; i < total; i++) {
+    bolinhas += `<span class="prep-bola ${i < num ? 'ok' : ''}"></span>`;
+  }
+
+  docMostrarConteudo(`
+    <div id="prep-tela">
+      <div id="prep-topo">
+        <h2>${r.emoji} ${r.nome}</h2>
+        <p>Passo ${num} de ${total}</p>
+      </div>
+
+      <div id="prep-bolinhas">${bolinhas}</div>
+
+      <div id="prep-texto">${passo.texto}</div>
+
+      <button id="prep-acao" class="prep-acao">
+        ${passo.acao}
+      </button>
+
+      <button id="prep-cancelar" class="doc-btn-acao doc-btn-cinza">Cancelar</button>
+    </div>
+  `);
+
+  setTimeout(() => {
+    document.getElementById('prep-acao').onclick = avancarPreparo;
+    document.getElementById('prep-cancelar').onclick = () => {
+      preparoAtual = null;
+      abrirLivroReceitas();
+    };
+  }, 50);
+}
+
+function avancarPreparo() {
+  if (!preparoAtual) return;
+  const r = RECEITAS[preparoAtual.id];
+
+  // Efeito visual fofo
+  const btn = document.getElementById('prep-acao');
+  if (btn) {
+    btn.style.transform = 'scale(1.3) rotate(8deg)';
+    btn.style.transition = 'transform .15s';
+    setTimeout(() => {
+      btn.style.transform = '';
+    }, 160);
+  }
+
+  // Som de clique fofo
+  SOM.nota(N.DO + Math.random() * 200, 0.08, 'sine', 0.1);
+  vib(20);
+
+  preparoAtual.passo++;
+
+  // Terminou?
+  if (preparoAtual.passo >= r.passos.length) {
+    // Vai pro forno!
+    iniciarForno(preparoAtual.id);
+    preparoAtual = null;
+    return;
+  }
+
+  // Próximo passo
+  setTimeout(renderPreparo, 180);
+}
+
+/* ============ FORNO (placeholder — Bloco 7 melhora) ============ */
+function iniciarForno(id) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  // Gasta ingredientes AGORA (eles foram usados)
+  for (const [chave, qtd] of Object.entries(r.ingredientes)) {
+    S.ingredientes[chave] = (S.ingredientes[chave] || 0) - qtd;
+    if (S.ingredientes[chave] <= 0) delete S.ingredientes[chave];
+  }
+  save();
+
+  // Por enquanto: sucesso automático
+  docMostrarConteudo(`
+    <div id="forno-tela">
+      <div id="forno-emoji">${r.emoji}</div>
+      <h2>Assando...</h2>
+      <p>Espera um pouquinho 🍰</p>
+    </div>
+  `);
+
+  setTimeout(() => {
+    finalizarDoce(id, 'perfeito');
+  }, r.tempo);
+}
+
+function finalizarDoce(id, resultado) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  if (resultado === 'perfeito') {
+    // Ganha humor
+    S.humor = clamp(S.humor + r.humor);
+    save();
+
+    // Tela de sucesso
+    docMostrarConteudo(`
+      <div id="forno-tela">
+        <div id="forno-emoji" class="pulse">${r.emoji}</div>
+        <h2>Ficou pronto! ✨</h2>
+        <p>${r.nome}</p>
+        <button id="btnDar" class="doc-btn-acao doc-btn-roxo">💗 Dar pra Nébula</button>
+      </div>
+    `);
+
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
+
+    setTimeout(() => {
+      document.getElementById('btnDar').onclick = () => {
+        // Fecha a cozinha
+        const doceria = document.getElementById('doceria');
+        if (doceria) doceria.remove();
+
+        // A Nébula aparece e prova
+        setTimeout(() => {
+          set('carinho', 4000, `Nham! ${r.nome} tá uma delícia! 💗`);
+          heart(innerWidth / 2, innerHeight / 2);
+          setTimeout(() => heart(innerWidth / 2 - 50, innerHeight / 2 - 30), 200);
+          setTimeout(() => heart(innerWidth / 2 + 50, innerHeight / 2 + 20), 400);
+        }, 400);
+      };
+    }, 50);
+    return;
+  }
+
+  // Deu ruim
+  docMostrarConteudo(`
+    <div id="forno-tela">
+      <div id="forno-emoji queimado">💨</div>
+      <h2>Queimou... 😢</h2>
+      <p>O doce se perdeu</p>
+      <button id="btnVoltarForno" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
+    </div>
+  `);
+
+  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
+
+  setTimeout(() => {
+    document.getElementById('btnVoltarForno').onclick = abrirLivroReceitas;
   }, 50);
 }
 
