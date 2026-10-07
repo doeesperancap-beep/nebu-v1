@@ -250,7 +250,7 @@ const DEFAULT = {
   moedas: 0,
   conectado: false,
   cidadeId: null,
-  energia: 100, fome: 100, saude: 100, humor: 100,
+  energia: 100, fome: 100, saude: 100, humor: 100, limpeza: 100,
   bond: 0, pers: null, sick: 0, greet: '',
   food: {}, pref: null, dis: null,
   places: {}, mem: [], lastDance: null,
@@ -370,9 +370,11 @@ function decay(min, mul = 1) {
   if (!Number.isFinite(min) || min <= 0) return;
   S.energia = clamp(S.energia - .4 * min * mul);
   S.fome    = clamp(S.fome    - .5 * min * mul);
-  const extra = (S.fome < 30 || S.energia < 30) ? .3 : 0;
+  S.limpeza = clamp(S.limpeza - .25 * min * mul);
+
+  const extra = (S.fome < 30 || S.energia < 30 || S.limpeza < 30) ? .3 : 0;
   S.humor  = clamp(S.humor - (.3 + extra + (S.sick > Date.now() ? .3 : 0)) * min);
-  S.saude  = clamp(S.saude + ((S.fome < 20 || S.energia < 20) ? -.5 : .3) * min);
+  S.saude  = clamp(S.saude + ((S.fome < 20 || S.energia < 20 || S.limpeza < 15) ? -.5 : .3) * min);
 }
 
 function offline(min) {
@@ -1272,130 +1274,52 @@ function sickTick() {
     say('Atchim! 🤧 🌡️ 37,8'); set('sick', 0);
   }
   const bx = $('bXarope');                    
-  if (bx) bx.style.display = S.sick > n ? '' : 'none';   
+  if (bx) bx.style.display = S.sick > n ? '' : 'none';
 }
 
-let ultimoPedidoMercado = 0;
-let vezesPediuMercado = 0;
+/* ============ FEDOR (quando limpeza baixa) ============ */
+setInterval(() => {
+  if (S.limpeza >= 30) return;
+  if (gOn) return;
+  if (Math.random() > .3) return;   // 30% de chance a cada 5s
 
-function foodTick() {
-  const n = Date.now();
-  
-  // Checa se tá com pouca comida no estoque
-  const estoqueTotal = Object.values(S.estoque || {}).reduce((a, b) => a + b, 0);
-  
-  // Se tem pouca comida E fome baixa → ela pede pra ir ao mercado
-  if (estoqueTotal <= 1 && S.fome < 50 &&
-      n - ultimoPedidoMercado > 60000 &&   // a cada 1 minuto no máximo
-      !gOn && !P.classList.contains('on') && S.pers) {
-    
-    ultimoPedidoMercado = n;
-    vezesPediuMercado++;
-    
-    // Fala + reação dependendo da personalidade
-    let fala = 'Tô com fome... podemos ir ao mercado? 🛒';
-    let expressao = 'sad';
-    
-    if (S.pers === 'carinhosa') {
-      fala = 'Amor, tô sem comidinha... vamos ao mercado? 🥺';
-      expressao = 'sad';
-    } else if (S.pers === 'brincalhona') {
-      fala = 'Mercado! Mercado! Vamos? 🛒✨';
-      expressao = 'happy';
-    } else if (S.pers === 'temperamental') {
-      fala = 'Cadê a comida?! Vamos ao mercado AGORA! 😤';
-      expressao = 'angry';
-    } else if (S.pers === 'curiosa') {
-      fala = 'O que tem no mercado hoje? Vamos ver! 👀';
-      expressao = 'curious';
-    } else if (S.pers === 'tranquila') {
-      fala = 'Tô com fome... mas sem pressa. 🍽️';
-      expressao = 'sleepy';
-    } else if (S.pers === 'reservada') {
-      fala = '... comida. 🍽️';
-      expressao = 'neutral';
-    }
-    
-    // Mostra o painel especial
-    panel(
-      `<h3>🛒 Hora do mercado!</h3>` +
-      `<p style="font-size:15px;margin:12px 0">${fala}</p>` +
-      `<p style="font-size:13px;opacity:.7;margin:8px 0">
-        Estoque atual: ${estoqueTotal} comida(s)<br>
-        Fome: ${Math.round(S.fome)}%
-      </p>` +
-      `<button id="btnIrMercado" style="font-size:16px;padding:14px;background:#f7d9e4;color:#1b1824">
-        🛒 Ir ao Mercado
-      </button>` +
-      `<button id="btnIgnorar" style="font-size:14px;padding:10px;opacity:.7;margin-top:8px">
-        Depois...
-      </button>`
-    );
-    
-    // Reação visual
-    set(expressao, 3000, fala);
-    
-    // Handler dos botões
-    setTimeout(() => {
-      const btnIr = document.getElementById('btnIrMercado');
-      const btnIgnorar = document.getElementById('btnIgnorar');
-      
-      if (btnIr) {
-        btnIr.onclick = () => {
-          P.classList.remove('on');
-          S.humor = clamp(S.humor + 5);   // feliz por ir
-          say('Eba! Vamos! 🛒✨');
-          setTimeout(() => painelLoja(), 400);
-        };
-      }
-      
-      if (btnIgnorar) {
-        btnIgnorar.onclick = () => {
-          P.classList.remove('on');
-          
-          // Fica triste se ignorar
-          if (S.pers === 'temperamental') {
-            set('angry', 2500, 'Você me ignora?! 😤');
-          } else if (S.pers === 'carinhosa') {
-            set('sad', 2500, 'Tá bom... 😢');
-          } else {
-            set('sad', 2000, '...');
-          }
-          
-          S.humor = clamp(S.humor - 3);
-          save();
-        };
-      }
-    }, 100);
-    
-    // Aumenta o humor se ela pediu muitas vezes e você ignorou
-    if (vezesPediuMercado >= 3) {
-      S.humor = clamp(S.humor - 2);
-      vezesPediuMercado = 0;   // reseta
-    }
-    
-    save();
-    return;
+  // Cria um "fedinho" 💨 que sobe e some
+  const el = document.createElement('div');
+  el.textContent = '💨';
+  el.style.cssText = `
+    position: fixed;
+    left: ${innerWidth / 2 + (Math.random() * 200 - 100)}px;
+    top: ${innerHeight / 2 + 100}px;
+    font-size: 32px;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.8;
+    transition: all 2.5s ease-out;
+  `;
+  document.body.appendChild(el);
+
+  requestAnimationFrame(() => {
+    el.style.top = (innerHeight / 2 - 50) + 'px';
+    el.style.opacity = '0';
+    el.style.fontSize = '50px';
+  });
+
+  setTimeout(() => el.remove(), 2600);
+}, 5000);
+
+/* Aviso de sujinha */
+setInterval(() => {
+  if (gOn) return;
+  if (S.limpeza >= 30) return;
+  if (Date.now() - lastAct < 30000) return;   // não fala se tá interagindo
+  if (Math.random() > .15) return;
+
+  if (S.limpeza < 15) {
+    say('Tô precisando de banho... 🥺');
+  } else {
+    say('Acho que tô meio sujinha... 💨');
   }
-  
-  // Lógica antiga (comida normal)
-  if (S.fome < 40 && n - lastTray > 300000 && !gOn &&
-      !P.classList.contains('on') && S.pers) {
-    lastTray = n;
-    say('Tô com fome... 🍽️'); foodTray();
-  }
-}
-
-function xarope() {
-  P.classList.remove('on');
-  S.sick = 0;
-  S.saude = clamp(S.saude + 20);
-  set('sleepy', 3000, 'Glug... zzz 😴');
-  setTimeout(() => set('happy', 2500, 'Melhorei! 😊'), 3200);
-  $('bXarope').style.display = 'none';
-  save();
-}
-
+}, 60000);
 /* ============ 10. MINIGAMES ============ */
 let gOn = 0, gx = .5;
 
@@ -1740,8 +1664,9 @@ function comecarBanho(sabKey) {
         saboneteEl.remove();
         gOn = 0;
 
-        S.humor = clamp(S.humor + 8);
+          S.humor = clamp(S.humor + 8);
         S.saude = clamp(S.saude + 3);
+        S.limpeza = clamp(S.limpeza + 100);   // limpa de vez!
         say('Limpinha com cheirinho de ' + sab.nome.toLowerCase() + '! ✨');
         ganharMoedas(5);
         startDance(6);
@@ -3591,7 +3516,8 @@ function drawEstado() {
     ['🔋', 'Energia', S.energia],
     ['🍎', 'Fome', S.fome],
     ['❤️', 'Saúde', S.saude],
-    ['😊', 'Humor', S.humor]
+    ['😊', 'Humor', S.humor],
+    ['🧼', 'Limpeza', S.limpeza]
   ];
   const nomeHtml = S.nome
     ? `<div class="st" style="font-size:14px"><b>${S.nome}</b> <span style="opacity:.5;font-size:12px">${S.id || ''}</span></div>`
