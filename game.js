@@ -1051,16 +1051,20 @@ function eat(f) {
     return;
   }
 
+  // Detecta se é doce caseiro
+  const ehCaseiro = f.startsWith('caseiro_');
+  const chaveReal = ehCaseiro ? f.replace('caseiro_', '') : f;
+
   // Pega do catálogo
-  const c = CATALOGO[f];
+  const c = CATALOGO[chaveReal];
   if (!c) {
     say('Não sei o que é isso... 🤔');
     return;
   }
-
   // Reduz do estoque
   S.estoque[f] -= 1;
-
+if (S.estoque[f] <= 0) delete S.estoque[f];
+  
   // Fecha o painel
   P.classList.remove('on');
 
@@ -1109,19 +1113,26 @@ function eat(f) {
 
   SOM.melodia([N.MI, N.SOL], 0.1, 'triangle', 0.1);
 
-  if (c.humor >= 6) {
+    if (c.humor >= 6) {
     setTimeout(() => heart(innerWidth / 2, innerHeight / 2), 300);
+  }
+
+  // 🎁 Bônus se for doce caseiro
+  if (ehCaseiro) {
+    let bonus = 15;
+    if ((S.favoritas || []).includes(chaveReal)) bonus += 15;   // favorita = +15 extra
+
+    ganharMoedas(bonus);
+    setTimeout(() => {
+      say(`Que delícia! +${bonus} 🪙 de carinho 💗`, 3500);
+    }, 800);
   }
 
   save();
 }
-
 function foodTray() {
-  // Pega só as comidas que tem no estoque
   const temEstoque = Object.keys(S.estoque || {}).filter(f => (S.estoque[f] || 0) > 0);
-  
-  // Comidas industriais e doces não precisam estar no estoque (podem ser compradas direto no mercado)
-  // Mas por enquanto, só mostra o que tem
+
   if (temEstoque.length === 0) {
     panel(
       '<h3>🍽️ Comida</h3>' +
@@ -1130,14 +1141,18 @@ function foodTray() {
     );
     return;
   }
-  
+
   panel(
     '<h3>🍽️ Comida</h3>' +
     '<p style="font-size:13px;opacity:.7;margin:0 0 12px">O que tenho pra comer:</p>' +
     temEstoque.map(f => {
       const qtd = S.estoque[f] || 0;
-      return `<button data-f="${f}" style="font-size:20px;padding:12px;display:flex;justify-content:space-between;align-items:center">
-        <span>${f}</span>
+      const ehCaseiro = f.startsWith('caseiro_');
+      const emoji = ehCaseiro ? f.replace('caseiro_', '') : f;
+      const label = ehCaseiro ? ' (feito em casa)' : '';
+      const cor = ehCaseiro ? 'background:#f7d9e4;color:#1b1824' : '';
+      return `<button data-f="${f}" style="font-size:20px;padding:12px;display:flex;justify-content:space-between;align-items:center;${cor}">
+        <span>${emoji}${label}</span>
         <span style="font-size:12px;opacity:.6">x${qtd}</span>
       </button>`;
     }).join('')
@@ -2381,35 +2396,107 @@ function renderPreparo() {
 function avancarPreparo() {
   if (!preparoAtual) return;
   const r = RECEITAS[preparoAtual.id];
+  const passo = r.passos[preparoAtual.passo];
 
-  // Efeito visual fofo
   const btn = document.getElementById('prep-acao');
   if (btn) {
-    btn.style.transform = 'scale(1.3) rotate(8deg)';
-    btn.style.transition = 'transform .15s';
-    setTimeout(() => {
-      btn.style.transform = '';
-    }, 160);
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    // 1. Emoji voa do botão
+    voarEmoji(passo.acao, cx, cy);
+
+    // 2. Botão encolhe e some
+    btn.style.transform = 'scale(.6)';
+    btn.style.opacity = '.4';
+
+    // 3. Brilhos saindo
+    for (let i = 0; i < 6; i++) {
+      const ang = (i / 6) * Math.PI * 2;
+      const dx = Math.cos(ang) * 60;
+      const dy = Math.sin(ang) * 60;
+      criarBrilho(cx, cy, dx, dy);
+    }
   }
 
-  // Som de clique fofo
-  SOM.nota(N.DO + Math.random() * 200, 0.08, 'sine', 0.1);
-  vib(20);
+  // Som fofo
+  SOM.melodia([N.DO + Math.random() * 150, N.MI + Math.random() * 150], 0.08, 'sine', 0.1);
+  vib(30);
 
   preparoAtual.passo++;
 
   // Terminou?
   if (preparoAtual.passo >= r.passos.length) {
-    // Vai pro forno!
-    iniciarForno(preparoAtual.id);
-    preparoAtual = null;
+    setTimeout(() => {
+      iniciarForno(preparoAtual.id);
+      preparoAtual = null;
+    }, 500);
     return;
   }
 
   // Próximo passo
-  setTimeout(renderPreparo, 180);
+  setTimeout(renderPreparo, 450);
 }
 
+/* Emoji voa do botão até a bancada */
+function voarEmoji(emoji, x, y) {
+  const el = document.createElement('div');
+  el.textContent = emoji;
+  el.style.cssText = `
+    position: fixed;
+    left: ${x}px; top: ${y}px;
+    font-size: 60px;
+    z-index: 9999;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: all .5s cubic-bezier(.3, 1.4, .5, 1);
+    filter: drop-shadow(0 4px 8px rgba(93,79,158,.4));
+  `;
+  document.body.appendChild(el);
+
+  // Voa pra cima
+  requestAnimationFrame(() => {
+    el.style.left = x + 'px';
+    el.style.top = (y - 150) + 'px';
+    el.style.transform = 'translate(-50%, -50%) scale(1.4) rotate(15deg)';
+  });
+
+  // Cai pra bancada
+  setTimeout(() => {
+    el.style.top = (innerHeight - 100) + 'px';
+    el.style.transform = 'translate(-50%, -50%) scale(.5) rotate(-15deg)';
+    el.style.opacity = '0';
+  }, 300);
+
+  setTimeout(() => el.remove(), 900);
+}
+
+/* Brilhinho saindo do botão */
+function criarBrilho(x, y, dx, dy) {
+  const el = document.createElement('div');
+  el.textContent = '✨';
+  el.style.cssText = `
+    position: fixed;
+    left: ${x}px; top: ${y}px;
+    font-size: 18px;
+    z-index: 9998;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: all .5s ease-out;
+    opacity: 1;
+  `;
+  document.body.appendChild(el);
+
+  requestAnimationFrame(() => {
+    el.style.left = (x + dx) + 'px';
+    el.style.top = (y + dy) + 'px';
+    el.style.opacity = '0';
+    el.style.fontSize = '10px';
+  });
+
+  setTimeout(() => el.remove(), 600);
+}
 /* ============ FORNO (minigame) ============ */
 function iniciarForno(id) {
   const r = RECEITAS[id];
@@ -2510,7 +2597,10 @@ function finalizarDoce(id, resultado) {
 
   // ---------- PERFEITO ----------
   if (resultado === 'perfeito') {
-    S.humor = clamp(S.humor + r.humor);
+    // Salva o doce no estoque com prefixo caseiro_
+    if (!S.estoque) S.estoque = {};
+    const chaveCaseiro = 'caseiro_' + r.emoji;
+    S.estoque[chaveCaseiro] = (S.estoque[chaveCaseiro] || 0) + 1;
     save();
 
     docMostrarConteudo(`
@@ -2518,24 +2608,15 @@ function finalizarDoce(id, resultado) {
         <div id="forno-emoji" class="pulse">${r.emoji}</div>
         <h2>Ficou pronto! ✨</h2>
         <p>${r.nome} perfeito</p>
-        <button id="btnDar" class="doc-btn-acao doc-btn-roxo">💗 Dar pra Nébula</button>
+        <p style="font-size:12px;opacity:.6;margin-top:8px">Foi pro estoque — come quando quiser 💗</p>
+        <button id="btnVoltarLivro" class="doc-btn-acao doc-btn-roxo">📖 Voltar ao Livro</button>
       </div>
     `);
 
     SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
 
     setTimeout(() => {
-      document.getElementById('btnDar').onclick = () => {
-        const doceria = document.getElementById('doceria');
-        if (doceria) doceria.remove();
-
-        setTimeout(() => {
-          set('carinho', 4000, `Nham! ${r.nome} tá uma delícia! 💗`);
-          heart(innerWidth / 2, innerHeight / 2);
-          setTimeout(() => heart(innerWidth / 2 - 50, innerHeight / 2 - 30), 200);
-          setTimeout(() => heart(innerWidth / 2 + 50, innerHeight / 2 + 20), 400);
-        }, 400);
-      };
+      document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
     }, 50);
     return;
   }
