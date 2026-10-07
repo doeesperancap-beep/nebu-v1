@@ -1897,9 +1897,12 @@ function renderMercado() {
           <div style="font-size:24px">${emoji}</div>
           <div style="font-size:10px;opacity:.7">${c.preco}🪙</div>
           ${noCarrinho > 0 ? `<div style="font-size:10px;color:#f7d9e4;font-weight:bold">x${noCarrinho}</div>` : ''}
-        </div>
+                </div>
       `;
     });
+    html += '</div>';
+  }
+
   // Total do carrinho
   let total = 0;
   let itensCarrinho = '';
@@ -2275,10 +2278,29 @@ function abrirDoceria() {
     abrirLivroReceitas();
   };
 
-  document.getElementById('doc-ingredientes').onclick = () => {
+    document.getElementById('doc-ingredientes').onclick = () => {
     abrirIngredientesDoceria();
   };
 }
+
+/* ============ HANDLER GLOBAL DE CLIQUES ============ */
+P.onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const d = b.dataset;
+
+  // Fechar
+  if (d.x === 'close') { P.classList.remove('on'); pararMusicaMercado(); }
+
+  // Conectar / Desconectar
+  else if (d.x === 'conectar') { P.classList.remove('on'); painelConectar(); }
+  else if (d.x === 'desconectar') {
+    S.conectado = false;
+    S.cidadeId = null;
+    save();
+    say('Desconectei...');
+    P.classList.remove('on');
+  }
 
   // Lugares da cidade
   else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
