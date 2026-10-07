@@ -9,7 +9,7 @@ const FIREBASE_CONFIG = {
 };
 
 let dbFirebase = null;
-let salaRef = null;
+let salaRef = null;f
 
 function iniciarFirebase() {
   if (dbFirebase) return dbFirebase;
@@ -1712,8 +1712,9 @@ function renderMercado() {
   let itensCarrinho = '';
   const itens = Object.entries(carrinho).filter(([_, q]) => q > 0);
   if (itens.length > 0) {
-    itens.forEach(([emoji, q]) => {
-      const preco = CATALOGO[emoji].preco * q;
+       itens.forEach(([emoji, q]) => {
+      const item = CATALOGO[emoji] || INGREDIENTES[emoji];
+      const preco = (item?.preco || 0) * q;
       total += preco;
       itensCarrinho += `${emoji}x${q} `;
     });
@@ -1750,8 +1751,10 @@ function renderMercado() {
     const btnPagar = document.getElementById('btnPagar');
     if (btnPagar) {
       btnPagar.onclick = () => {
-        const total = Object.entries(carrinho).reduce((soma, [emoji, q]) => 
-          soma + (CATALOGO[emoji]?.preco || 0) * q, 0);
+               const total = Object.entries(carrinho).reduce((soma, [emoji, q]) => {
+          const item = CATALOGO[emoji] || INGREDIENTES[emoji];
+          return soma + (item?.preco || 0) * q;
+        }, 0);
         
         if ((S.moedas || 0) < total) {
           say('Não tenho moedas suficientes... 😢');
