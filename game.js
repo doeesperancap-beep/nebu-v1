@@ -9,7 +9,7 @@ const FIREBASE_CONFIG = {
 };
 
 let dbFirebase = null;
-let salaRef = null;f
+let salaRef = null;
 
 function iniciarFirebase() {
   if (dbFirebase) return dbFirebase;
