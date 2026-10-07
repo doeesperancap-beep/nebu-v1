@@ -2410,7 +2410,7 @@ function avancarPreparo() {
   setTimeout(renderPreparo, 180);
 }
 
-/* ============ FORNO (placeholder — Bloco 7 melhora) ============ */
+/* ============ FORNO (minigame) ============ */
 function iniciarForno(id) {
   const r = RECEITAS[id];
   if (!r) return;
@@ -2422,35 +2422,102 @@ function iniciarForno(id) {
   }
   save();
 
-  // Por enquanto: sucesso automático
+  // Tela do forno com barra
   docMostrarConteudo(`
     <div id="forno-tela">
       <div id="forno-emoji">${r.emoji}</div>
       <h2>Assando...</h2>
-      <p>Espera um pouquinho 🍰</p>
+      <p>Tira do forno na hora certa!</p>
+
+      <div id="forno-barra-wrap">
+        <div id="forno-barra">
+          <div id="forno-barra-preenche"></div>
+          <div id="forno-zona-boa"></div>
+        </div>
+      </div>
+
+      <button id="btnTirarForno" class="doc-btn-acao doc-btn-roxo">
+        🔥 Tirar do forno
+      </button>
     </div>
   `);
 
   setTimeout(() => {
-    finalizarDoce(id, 'perfeito');
-  }, r.tempo);
+    rodarMinigameForno(id);
+  }, 50);
+}
+
+function rodarMinigameForno(id) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  const barra = document.getElementById('forno-barra-preenche');
+  const zona = document.getElementById('forno-zona-boa');
+  const btn = document.getElementById('btnTirarForno');
+  if (!barra || !btn) return;
+
+  // Define a zona boa (60% a 85% da barra)
+  const ZONA_INICIO = 60;
+  const ZONA_FIM = 85;
+  zona.style.left = ZONA_INICIO + '%';
+  zona.style.width = (ZONA_FIM - ZONA_INICIO) + '%';
+
+  let progresso = 0;
+  let terminou = false;
+
+  // Velocidade: receita mais longa = barra mais lenta
+  // Normaliza pra todas levarem ~3 a 5 segundos
+  const duracao = 3000 + (r.tempo / 1000) * 300;   // ms
+  const passo = 100 / (duracao / 50);              // % por frame
+
+  const iv = setInterval(() => {
+    if (terminou) return;
+    progresso += passo;
+    if (progresso > 100) progresso = 100;
+    barra.style.width = progresso + '%';
+
+    // Passou da zona boa → queimou
+    if (progresso >= 100) {
+      clearInterval(iv);
+      terminou = true;
+      setTimeout(() => finalizarDoce(id, 'queimou'), 200);
+    }
+  }, 50);
+
+  btn.onclick = () => {
+    if (terminou) return;
+    terminou = true;
+    clearInterval(iv);
+
+    // Efeito visual
+    btn.style.transform = 'scale(.9)';
+    setTimeout(() => btn.style.transform = '', 150);
+
+    // Avalia o resultado
+    if (progresso < ZONA_INICIO) {
+      finalizarDoce(id, 'cru');
+    } else if (progresso > ZONA_FIM) {
+      finalizarDoce(id, 'queimou');
+    } else {
+      finalizarDoce(id, 'perfeito');
+    }
+  };
 }
 
 function finalizarDoce(id, resultado) {
   const r = RECEITAS[id];
   if (!r) return;
 
+  // ---------- PERFEITO ----------
   if (resultado === 'perfeito') {
-    // Ganha humor
     S.humor = clamp(S.humor + r.humor);
     save();
 
-    // Tela de sucesso
     docMostrarConteudo(`
       <div id="forno-tela">
         <div id="forno-emoji" class="pulse">${r.emoji}</div>
         <h2>Ficou pronto! ✨</h2>
-        <p>${r.nome}</p>
+        <p>${r.nome} perfeito</p>
         <button id="btnDar" class="doc-btn-acao doc-btn-roxo">💗 Dar pra Nébula</button>
       </div>
     `);
@@ -2459,11 +2526,9 @@ function finalizarDoce(id, resultado) {
 
     setTimeout(() => {
       document.getElementById('btnDar').onclick = () => {
-        // Fecha a cozinha
         const doceria = document.getElementById('doceria');
         if (doceria) doceria.remove();
 
-        // A Nébula aparece e prova
         setTimeout(() => {
           set('carinho', 4000, `Nham! ${r.nome} tá uma delícia! 💗`);
           heart(innerWidth / 2, innerHeight / 2);
@@ -2475,6 +2540,47 @@ function finalizarDoce(id, resultado) {
     return;
   }
 
+  // ---------- CRU ----------
+  if (resultado === 'cru') {
+    S.humor = clamp(S.humor - 2);
+    save();
+
+    docMostrarConteudo(`
+      <div id="forno-tela">
+        <div id="forno-emoji">🥣</div>
+        <h2>Tá cru... 😖</h2>
+        <p>Tirou do forno cedo demais</p>
+        <button id="btnVoltarForno" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
+      </div>
+    `);
+
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
+
+    setTimeout(() => {
+      document.getElementById('btnVoltarForno').onclick = abrirLivroReceitas;
+    }, 50);
+    return;
+  }
+
+  // ---------- QUEIMOU ----------
+  S.humor = clamp(S.humor - 4);
+  save();
+
+  docMostrarConteudo(`
+    <div id="forno-tela">
+      <div id="forno-emoji" class="queimado">💨</div>
+      <h2>Queimou! 🔥</h2>
+      <p>Passou do ponto...</p>
+      <button id="btnVoltarForno" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
+    </div>
+  `);
+
+  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.12);
+
+  setTimeout(() => {
+    document.getElementById('btnVoltarForno').onclick = abrirLivroReceitas;
+  }, 50);
+}
   // Deu ruim
   docMostrarConteudo(`
     <div id="forno-tela">
