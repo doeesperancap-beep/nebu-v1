@@ -189,6 +189,8 @@ const DEFAULT = {
   favoritas: [],
   detestadas: [],
   compras: [],           // ← NOVO (itens já comprados)
+    ingredientes: {},      // ← NOVO (leite, farinha, ovo...)
+  docesProntos: [],      // ← NOVO (doces feitos, esperando comer)
   equipado: {            // ← NOVO (o que tá usando agora)
     cabeca: null,
     oculos: null,
@@ -795,6 +797,14 @@ const CATALOGO = {
   '🍩': { nome: 'Donut',      tipo: 'doce', preco: 15, humor: 8, saude: -3 },
   '🧁': { nome: 'Cupcake',    tipo: 'doce', preco: 15, humor: 8, saude: -3 },
   '🍮': { nome: 'Pudim',      tipo: 'doce', preco: 18, humor: 9, saude: -2 }
+};
+/* ============ CATÁLOGO DE INGREDIENTES ============ */
+const INGREDIENTES = {
+  '🥛': { nome: 'Leite',     preco: 4,  tipo: 'ingrediente' },
+  '🌾': { nome: 'Farinha',   preco: 3,  tipo: 'ingrediente' },
+  '🥚': { nome: 'Ovo',       preco: 2,  tipo: 'ingrediente' },
+  '🍬': { nome: 'Açúcar',    preco: 3,  tipo: 'ingrediente' },
+  '🍫': { nome: 'Chocolate', preco: 6,  tipo: 'ingrediente' }
 };
 const FOODS = ['🍎', '🍓', '🥒', '🍌'];
 let lastTray = 0;
