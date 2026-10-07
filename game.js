@@ -2176,6 +2176,158 @@ function abrirTelaSpa() {
 function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
 function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
+/* ============ LIVRO DE RECEITAS ============ */
+
+/* Abre o Livro de Receitas na bancada */
+function abrirLivroReceitas() {
+  docMostrarConteudo(`
+    <div id="livro-header">
+      <h2>📖 Livro de Receitas</h2>
+      <p>Escolha uma receita pra fazer</p>
+    </div>
+    <div id="livro-lista"></div>
+  `);
+  renderLivroReceitas();
+}
+
+/* Desenha a lista de receitas */
+function renderLivroReceitas() {
+  const lista = document.getElementById('livro-lista');
+  if (!lista) return;
+
+  let html = '';
+
+  for (const [id, r] of Object.entries(RECEITAS)) {
+    const check = verificarIngredientes(r);
+
+    html += `
+      <div class="livro-receita" data-receita="${id}">
+        <div class="livro-receita-emoji">${r.emoji}</div>
+        <div class="livro-receita-info">
+          <div class="livro-receita-nome">${r.nome}</div>
+          <div class="livro-receita-status ${check.temTudo ? 'ok' : 'falta'}">
+            ${check.temTudo ? '✅ Pronto pra fazer' : '❌ Faltam ingredientes'}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  lista.innerHTML = html;
+
+  // Handlers
+  setTimeout(() => {
+    document.querySelectorAll('.livro-receita').forEach(el => {
+      el.onclick = () => clicarReceita(el.dataset.receita);
+    });
+  }, 50);
+}
+
+/* Verifica se tem os ingredientes da receita */
+function verificarIngredientes(receita) {
+  const falta = [];
+  for (const [chave, qtd] of Object.entries(receita.ingredientes)) {
+    const tem = S.ingredientes?.[chave] || 0;
+    if (tem < qtd) {
+      falta.push({
+        chave,
+        nome: INGREDIENTES[chave]?.nome || chave,
+        emoji: INGREDIENTES[chave]?.emoji || '?',
+        tem,
+        precisa: qtd
+      });
+    }
+  }
+  return { temTudo: falta.length === 0, falta };
+}
+
+/* Quando clica numa receita */
+function clicarReceita(id) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  const check = verificarIngredientes(r);
+
+  if (!check.temTudo) {
+    // Mostra o que falta
+    let htmlFalta = '<div id="receita-detalhe">';
+    htmlFalta += `<h2>${r.emoji} ${r.nome}</h2>`;
+    htmlFalta += '<p class="receita-sub">Faltam esses ingredientes:</p>';
+    htmlFalta += '<div class="receita-falta-lista">';
+
+    check.falta.forEach(f => {
+      htmlFalta += `
+        <div class="receita-falta-item">
+          <span class="receita-falta-emoji">${f.emoji}</span>
+          <span class="receita-falta-nome">${f.nome}</span>
+          <span class="receita-falta-qtd">${f.tem}/${f.precisa}</span>
+        </div>
+      `;
+    });
+
+    htmlFalta += '</div>';
+    htmlFalta += '<button id="btnVoltarLivro" class="doc-btn-acao doc-btn-cinza">← Voltar</button>';
+    htmlFalta += '<button id="btnComprarIng" class="doc-btn-acao doc-btn-verde">🫙 Comprar Ingredientes</button>';
+    htmlFalta += '</div>';
+
+    docMostrarConteudo(htmlFalta);
+
+    setTimeout(() => {
+      document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
+      document.getElementById('btnComprarIng').onclick = abrirIngredientesDoceria;
+    }, 50);
+    return;
+  }
+
+  // Tem tudo! Mostra detalhe pra começar
+  let htmlOk = '<div id="receita-detalhe">';
+  htmlOk += `<h2>${r.emoji} ${r.nome}</h2>`;
+  htmlOk += '<p class="receita-sub">Ingredientes:</p>';
+  htmlOk += '<div class="receita-ing-lista">';
+
+  for (const [chave, qtd] of Object.entries(r.ingredientes)) {
+    const ing = INGREDIENTES[chave];
+    htmlOk += `
+      <div class="receita-ing-item">
+        <span>${ing.emoji}</span>
+        <span>${ing.nome}</span>
+        <span class="receita-ing-qtd">x${qtd}</span>
+      </div>
+    `;
+  }
+
+  htmlOk += '</div>';
+  htmlOk += '<button id="btnVoltarLivro" class="doc-btn-acao doc-btn-cinza">← Voltar</button>';
+  htmlOk += '<button id="btnComecar" class="doc-btn-acao doc-btn-roxo">👩‍🍳 Começar a fazer</button>';
+  htmlOk += '</div>';
+
+  docMostrarConteudo(htmlOk);
+
+  setTimeout(() => {
+    document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
+    document.getElementById('btnComecar').onclick = () => {
+      // Por enquanto, só mostra um aviso
+      // No Bloco 5 a gente faz a tela de preparo
+      say('Em breve! 👩‍🍳');
+      SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+    };
+  }, 50);
+}
+
+/* Placeholder — vira função de verdade no Bloco 5 */
+function abrirIngredientesDoceria() {
+  docMostrarConteudo(`
+    <div id="ing-header">
+      <h2>🫙 Ingredientes</h2>
+      <p>Em breve você vai poder comprar aqui!</p>
+    </div>
+    <button id="btnVoltarLivro" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
+  `);
+  setTimeout(() => {
+    document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
+  }, 50);
+}
+
 /* ============ DOCERIA (nova) ============ */
 function abrirDoceria() {
   // Fecha qualquer painel aberto
