@@ -806,6 +806,30 @@ const INGREDIENTES = {
   '🍬': { nome: 'Açúcar',    preco: 3,  tipo: 'ingrediente' },
   '🍫': { nome: 'Chocolate', preco: 6,  tipo: 'ingrediente' }
 };
+/* ============ CATÁLOGO DE RECEITAS ============ */
+const RECEITAS = {
+  pudim: {
+    nome: 'Pudim',
+    emoji: '🍮',
+    ingredientes: { '🥛': 2, '🥚': 3, '🍬': 4 },
+    humor: 8,
+    tempo: 4000
+  },
+  bolo: {
+    nome: 'Bolo',
+    emoji: '🍰',
+    ingredientes: { '🌾': 3, '🥚': 2, '🍬': 3, '🍫': 2 },
+    humor: 9,
+    tempo: 5000
+  },
+  biscoito: {
+    nome: 'Biscoito',
+    emoji: '🍪',
+    ingredientes: { '🌾': 2, '🍬': 2 },
+    humor: 6,
+    tempo: 3000
+  }
+};
 const FOODS = ['🍎', '🍓', '🥒', '🍌'];
 let lastTray = 0;
 
@@ -1322,6 +1346,7 @@ function mundo() {
       '<button data-x="clinica" style="font-size:16px;padding:14px">🏥 Clínica</button>' +
       '<button data-x="biblioteca" style="font-size:16px;padding:14px">📚 Biblioteca</button>' +
       '<button data-x="jogos" style="font-size:16px;padding:14px">🎮 Jogos</button>' +
+      '<button data-x="doceria" style="font-size:16px;padding:14px">🍰 Doceria</button>' +
       '<hr style="border-color:#ffffff20;margin:12px 0">' +
       '<button data-x="desconectar" style="font-size:14px;opacity:.7">🔌 Desconectar</button>'
     );
@@ -1947,6 +1972,365 @@ function abrirTelaSpa() {
 function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
 function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
+
+/* ============ DOCERIA ============ */
+function abrirDoceria() {
+  let doceria = document.getElementById('doceria');
+  if (doceria) doceria.remove();
+
+  doceria = document.createElement('div');
+  doceria.id = 'doceria';
+  doceria.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: block;
+    overflow: hidden;
+    background: #f7d9e4;
+  `;
+
+  doceria.innerHTML = `
+    <div id="doceriaAzulejo"></div>
+
+    <div id="doceriaBancada">
+      <div id="doceriaTigela"></div>
+      <div id="doceriaPrato"></div>
+    </div>
+
+    <div id="doceriaFogao">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="80" width="160" height="110" rx="10" fill="#8b6b4a"/>
+        <rect x="20" y="80" width="160" height="20" rx="6" fill="#5a3d24"/>
+        <circle cx="70" cy="140" r="22" fill="#1b1824" stroke="#5a3d24" stroke-width="3"/>
+        <circle cx="130" cy="140" r="22" fill="#1b1824" stroke="#5a3d24" stroke-width="3"/>
+        <circle cx="70" cy="140" r="14" fill="#ff6b35" opacity=".9" id="fogo1"/>
+        <circle cx="130" cy="140" r="14" fill="#ff6b35" opacity=".9" id="fogo2"/>
+        <rect x="40" y="60" width="120" height="14" rx="6" fill="#5a3d24"/>
+        <rect x="40" y="20" width="120" height="40" rx="8" fill="#3d2a1a"/>
+        <rect x="55" y="30" width="90" height="20" rx="6" fill="#1b1824"/>
+      </svg>
+    </div>
+
+    <div id="doceriaTopo">
+      <button id="doceriaSair">← Sair</button>
+      <h2>🍰 Doceria</h2>
+      <div id="doceriaMoedas">🪙 ${S.moedas || 0}</div>
+    </div>
+
+    <div id="doceriaPainel"></div>
+  `;
+
+  document.body.appendChild(doceria);
+
+  // Azulejo (fundo)
+  document.getElementById('doceriaAzulejo').style.cssText = `
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(#ffffff33 1px, transparent 1px),
+      linear-gradient(90deg, #ffffff33 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-color: #f7d9e4;
+    pointer-events: none;
+  `;
+
+  // Bancada
+  document.getElementById('doceriaBancada').style.cssText = `
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32%;
+    background: linear-gradient(180deg, #c9a227 0%, #8b6b4a 100%);
+    border-top: 6px solid #5a3d24;
+  `;
+
+  // Tigela (na bancada, esquerda)
+  document.getElementById('doceriaTigela').style.cssText = `
+    position: absolute;
+    bottom: 40%;
+    left: 12%;
+    width: 22%;
+    aspect-ratio: 1;
+    background: #d8d2f2;
+    border: 4px solid #5d4f9e;
+    border-radius: 0 0 50% 50%;
+    box-shadow: inset 0 -10px 20px #00000022;
+  `;
+
+  // Prato (na bancada, direita)
+  document.getElementById('doceriaPrato').style.cssText = `
+    position: absolute;
+    bottom: 40%;
+    right: 12%;
+    width: 26%;
+    aspect-ratio: 1;
+    background: #fff;
+    border: 3px solid #d8d2f2;
+    border-radius: 50%;
+  `;
+
+  // Fogão (fundo, centro)
+  document.getElementById('doceriaFogao').style.cssText = `
+    position: absolute;
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 45%;
+    max-width: 260px;
+  `;
+
+  // Topo (botão sair + título + moedas)
+  document.getElementById('doceriaTopo').style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #5d4f9e;
+    z-index: 10;
+  `;
+  document.getElementById('doceriaTopo').querySelector('h2').style.cssText = `
+    margin: 0;
+    font-size: 20px;
+    color: #5d4f9e;
+  `;
+  document.getElementById('doceriaMoedas').style.cssText = `
+    background: #fff;
+    color: #5d4f9e;
+    padding: 8px 14px;
+    border-radius: 22px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 2px solid #d8d2f2;
+  `;
+  document.getElementById('doceriaSair').style.cssText = `
+    background: rgba(27, 24, 36, .85);
+    color: #fff;
+    border: 0;
+    border-radius: 22px;
+    padding: 10px 18px;
+    font-size: 15px;
+    cursor: pointer;
+  `;
+
+  // Painel de receitas (canto inferior)
+  document.getElementById('doceriaPainel').style.cssText = `
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 40%;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    z-index: 9;
+  `;
+
+  // Handler do Sair
+  document.getElementById('doceriaSair').onclick = () => {
+    doceria.remove();
+  };
+
+  // Mostra as receitas
+  renderReceitasDoceria();
+}
+
+function renderReceitasDoceria() {
+  const painel = document.getElementById('doceriaPainel');
+  if (!painel) return;
+
+  let html = '';
+  for (const [id, r] of Object.entries(RECEITAS)) {
+    // Conta se tem ingredientes suficientes
+    let temTudo = true;
+    for (const [ing, qtd] of Object.entries(r.ingredientes)) {
+      if ((S.ingredientes[ing] || 0) < qtd) temTudo = false;
+    }
+
+    html += `
+      <div class="doce-card" data-doce="${id}" style="
+        background: #fff;
+        border: 3px solid ${temTudo ? '#7bc47f' : '#d8d2f2'};
+        border-radius: 16px;
+        padding: 10px;
+        width: 90px;
+        text-align: center;
+        cursor: pointer;
+        opacity: ${temTudo ? 1 : .5};
+        transition: transform .15s;
+      ">
+        <div style="font-size: 32px">${r.emoji}</div>
+        <div style="font-size: 11px; font-weight: bold; color: #5d4f9e; margin-top: 4px">${r.nome}</div>
+      </div>
+    `;
+  }
+  painel.innerHTML = html;
+
+  // Handlers
+  setTimeout(() => {
+    document.querySelectorAll('.doce-card').forEach(el => {
+      el.onclick = () => {
+        const id = el.dataset.doce;
+        fazerDoce(id);
+      };
+    });
+  }, 100);
+}
+
+function fazerDoce(id) {
+  const r = RECEITAS[id];
+  if (!r) return;
+
+  // Verifica ingredientes
+  for (const [ing, qtd] of Object.entries(r.ingredientes)) {
+    if ((S.ingredientes[ing] || 0) < qtd) {
+      say('Falta ' + INGREDIENTES[ing].nome + '... 😢');
+      return;
+    }
+  }
+
+  // Gasta ingredientes
+  for (const [ing, qtd] of Object.entries(r.ingredientes)) {
+    S.ingredientes[ing] -= qtd;
+  }
+
+  save();
+  SOM.melodia([N.DO, N.MI, N.SOL], 0.1, 'sine', 0.1);
+
+  // Minigame do forno
+  minigameForno(r);
+}
+
+function minigameForno(receita) {
+  // Remove painel de receitas
+  const painel = document.getElementById('doceriaPainel');
+  if (painel) painel.innerHTML = '';
+
+  // Cria barra de progresso
+  const barraWrap = document.createElement('div');
+  barraWrap.style.cssText = `
+    position: absolute;
+    bottom: 42%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    max-width: 300px;
+    z-index: 15;
+  `;
+  barraWrap.innerHTML = `
+    <div style="color: #5d4f9e; font-weight: bold; text-align: center; margin-bottom: 6px">
+      ${receita.emoji} Assando...
+    </div>
+    <div style="background: #fff; border: 3px solid #5d4f9e; border-radius: 12px; height: 26px; overflow: hidden; position: relative">
+      <div id="fornoBarra" style="height: 100%; width: 0%; background: linear-gradient(90deg, #f7d9e4, #f9d71c, #ff6b35); transition: width .1s linear"></div>
+      <div id="fornoZonaBoa" style="position: absolute; top: 0; bottom: 0; left: 60%; right: 15%; border-left: 3px dashed #7bc47f; border-right: 3px dashed #7bc47f; background: #7bc47f33"></div>
+    </div>
+    <button id="fornoBotao" style="
+      display: block;
+      margin: 12px auto 0;
+      background: #7bc47f;
+      color: #fff;
+      border: 0;
+      border-radius: 22px;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    ">Tirar do forno!</button>
+  `;
+  document.getElementById('doceria').appendChild(barraWrap);
+
+  let progresso = 0;
+  let terminou = false;
+  const barra = document.getElementById('fornoBarra');
+  const botao = document.getElementById('fornoBotao');
+
+  const iv = setInterval(() => {
+    if (terminou) return;
+    progresso += 100 / (receita.tempo / 50);
+    if (progresso > 100) progresso = 100;
+    barra.style.width = progresso + '%';
+
+    if (progresso >= 100) {
+      clearInterval(iv);
+      terminou = true;
+      // Passou direto = queimou
+      setTimeout(() => finalizarDoce(receita, 'queimou', barraWrap), 200);
+    }
+  }, 50);
+
+  botao.onclick = () => {
+    if (terminou) return;
+    terminou = true;
+    clearInterval(iv);
+    const p = progresso;
+    // Zona boa: 60% a 85%
+    let resultado;
+    if (p < 60) resultado = 'cru';
+    else if (p > 85) resultado = 'queimou';
+    else resultado = 'perfeito';
+    finalizarDoce(receita, resultado, barraWrap);
+  };
+}
+
+function finalizarDoce(receita, resultado, barraWrap) {
+  if (barraWrap) barraWrap.remove();
+
+  let fala = '';
+  let humor = 0;
+  let cor = '';
+
+  if (resultado === 'perfeito') {
+    fala = 'Ficou perfeito! ' + receita.emoji + '✨';
+    humor = receita.humor;
+    cor = '#7bc47f';
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
+  } else if (resultado === 'cru') {
+    fala = 'Tá cru... 😖';
+    humor = -2;
+    cor = '#f9d71c';
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.1);
+  } else {
+    fala = 'Queimou! 🔥😢';
+    humor = -4;
+    cor = '#ff6b35';
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.12);
+  }
+
+  S.humor = clamp(S.humor + humor);
+  save();
+
+  // Aviso na tela
+  const aviso = document.createElement('div');
+  aviso.style.cssText = `
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: ${cor};
+    color: #fff;
+    padding: 20px 30px;
+    border-radius: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 20;
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    animation: bounceIn .4s;
+  `;
+  aviso.textContent = fala;
+  document.getElementById('doceria').appendChild(aviso);
+
+  setTimeout(() => {
+    aviso.remove();
+    // Volta pra tela de receitas
+    renderReceitasDoceria();
+  }, 2200);
+}
 P.onclick = e => {
   const b = e.target.closest('button');
   if (!b) return;
@@ -1971,6 +2355,7 @@ P.onclick = e => {
   else if (d.x === 'clinica')     { P.classList.remove('on'); painelClinica(); }
   else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
   else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
+  else if (d.x === 'doceria')     { P.classList.remove('on'); abrirDoceria(); }
   else if (d.x === 'boutique')    { P.classList.remove('on'); painelBoutique(); }
 
   // Coisas antigas
