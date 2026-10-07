@@ -1513,57 +1513,63 @@ function startBath() {
 /* Tela de escolha do sabonete */
 function escolherSabonete() {
   const c = document.createElement('canvas');
-  c.width = innerWidth; c.height = innerHeight;
+  c.width = innerWidth;
+  c.height = innerHeight;
   c.style.cssText = 'position:fixed;inset:0;z-index:8;background:#f5e8f0';
   document.body.appendChild(c);
   const x = c.getContext('2d');
 
-  // Monta os botões (círculos) dos sabonetes
   const sabKeys = Object.keys(SABONETES);
-  const total = sabKeys.length;
-
-  // Guarda a posição de cada sabonete pra detectar clique
   let posicoes = [];
 
-  // Desenha a tela
   function desenhar() {
-    x.clearRect(0, 0, c.width, c.height);
+    // Usa o tamanho real da tela
+    const L = c.width;
+    const A = c.height;
+
+    x.clearRect(0, 0, L, A);
 
     // Fundo xadrez
     x.fillStyle = '#f5e8f0';
-    x.fillRect(0, 0, c.width, c.height);
+    x.fillRect(0, 0, L, A);
     x.fillStyle = 'rgba(255, 255, 255, .4)';
-    for (let i = 0; i < c.width; i += 40) {
-      for (let j = 0; j < c.height; j += 40) {
+    for (let i = 0; i < L; i += 40) {
+      for (let j = 0; j < A; j += 40) {
         if ((i / 40 + j / 40) % 2 === 0) x.fillRect(i, j, 40, 40);
       }
     }
 
     // Título
-    x.font = 'bold 26px sans-serif';
+    x.font = 'bold 24px sans-serif';
     x.fillStyle = '#5d4f9e';
     x.textAlign = 'center';
-    x.fillText('🛁 Escolha o sabonete', c.width / 2, 60);
+    x.textBaseline = 'top';
+    x.fillText('🛁 Escolha o sabonete', L / 2, 50);
     x.font = '14px sans-serif';
-    x.fillStyle = '#5d4f9e';
     x.globalAlpha = .6;
-    x.fillText('Qual vai usar hoje?', c.width / 2, 85);
+    x.fillText('Qual vai usar hoje?', L / 2, 82);
     x.globalAlpha = 1;
 
-    // Sabonetes na tela
+    // Grade 2x2
+    const cols = 2;
+    const linhas = Math.ceil(sabKeys.length / cols);
+    const raio = Math.min(L / 5, A / 8);       // raio da bolha
+    const espacoX = L / cols;
+    const espacoY = (A * 0.55) / linhas;        // ocupa 55% da altura
+    const inicioY = A * 0.22;                   // começa em 22% da altura
+
     posicoes = [];
-    const raio = Math.min(c.width, c.height) / 7;
-    const espaco = raio * 2.6;
-    const inicioX = (c.width - espaco * (total - 1)) / 2;
-    const y = c.height / 2;
 
     sabKeys.forEach((k, i) => {
       const sab = SABONETES[k];
-      const cx = inicioX + espaco * i;
+      const col = i % cols;
+      const lin = Math.floor(i / cols);
+      const cx = espacoX * (col + 0.5);
+      const cy = inicioY + espacoY * (lin + 0.5);
 
       // Bolha do sabonete
       x.beginPath();
-      x.arc(cx, y, raio, 0, 7);
+      x.arc(cx, cy, raio, 0, 7);
       x.fillStyle = sab.cor;
       x.fill();
       x.strokeStyle = '#5d4f9e';
@@ -1572,7 +1578,7 @@ function escolherSabonete() {
 
       // Brilho
       x.beginPath();
-      x.arc(cx - raio * 0.3, y - raio * 0.3, raio * 0.15, 0, 7);
+      x.arc(cx - raio * 0.3, cy - raio * 0.3, raio * 0.15, 0, 7);
       x.fillStyle = 'rgba(255,255,255,.7)';
       x.fill();
 
@@ -1580,49 +1586,60 @@ function escolherSabonete() {
       x.font = `${raio * 1.1}px serif`;
       x.textAlign = 'center';
       x.textBaseline = 'middle';
-      x.fillText(sab.emoji, cx, y);
+      x.fillText(sab.emoji, cx, cy);
 
       // Nome embaixo
-      x.font = 'bold 14px sans-serif';
+      x.font = 'bold 15px sans-serif';
       x.fillStyle = '#5d4f9e';
       x.textBaseline = 'top';
-      x.fillText(sab.nome, cx, y + raio + 10);
+      x.fillText(sab.nome, cx, cy + raio + 12);
 
-      posicoes.push({ key: k, x: cx, y, raio });
+      posicoes.push({ key: k, x: cx, y: cy, raio: raio * 1.2 });
     });
 
-    // Botão cancelar
+    // Cancelar
     x.font = '14px sans-serif';
     x.fillStyle = '#5d4f9e';
     x.globalAlpha = .5;
     x.textAlign = 'center';
-    x.fillText('Toque pra cancelar', c.width / 2, c.height - 40);
+    x.fillText('Toque fora pra cancelar', L / 2, A - 40);
     x.globalAlpha = 1;
   }
 
   desenhar();
 
-  // Clique
+  // Re-desenha se a tela girar
+  const redesenhar = () => {
+    c.width = innerWidth;
+    c.height = innerHeight;
+    desenhar();
+  };
+  addEventListener('resize', redesenhar);
+  addEventListener('orientationchange', redesenhar);
+
   const clicar = e => {
     const cx = e.clientX;
     const cy = e.clientY;
 
-    // Acha qual sabonete foi clicado
     for (const p of posicoes) {
       const d = Math.hypot(cx - p.x, cy - p.y);
       if (d < p.raio) {
         SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.1);
         vib(20);
-        c.remove();
         c.removeEventListener('pointerdown', clicar);
+        removeEventListener('resize', redesenhar);
+        removeEventListener('orientationchange', redesenhar);
+        c.remove();
         comecarBanho(p.key);
         return;
       }
     }
 
     // Cancelar
-    c.remove();
     c.removeEventListener('pointerdown', clicar);
+    removeEventListener('resize', redesenhar);
+    removeEventListener('orientationchange', redesenhar);
+    c.remove();
     gOn = 0;
     SOM.melodia([N.DO_BAIXO], 0.1, 'sine', 0.08);
   };
