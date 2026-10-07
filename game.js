@@ -188,15 +188,16 @@ const DEFAULT = {
   estoque: { '🍎': 3, '🍓': 2, '🥭': 1, '🍕': 0, '🍰': 0 },
   favoritas: [],
   detestadas: [],
-  compras: [],           // ← NOVO (itens já comprados)
-    ingredientes: {},      // ← NOVO (leite, farinha, ovo...)
-  docesProntos: [],      // ← NOVO (doces feitos, esperando comer)
-  equipado: {            // ← NOVO (o que tá usando agora)
+  compras: [],
+  ingredientes: {},
+  docesProntos: [],
+  equipado: {
     cabeca: null,
     oculos: null,
     olhos: null,
     fundo: null
   },
+  recordeDino: 0,        // ← NOVO: recorde do jogo da Nébula
   last: Date.now()
 };
 /* ============ GERAR PREFERÊNCIAS ============ */
@@ -1501,12 +1502,11 @@ function startDino() {
 
   const chao = c.height - 100;
 
-  // Nébula (só os olhos)
+  // Nébula
   const nebo = {
     x: 80,
     y: chao,
     vy: 0,
-    tam: 50,
     noChao: true
   };
 
@@ -1514,12 +1514,14 @@ function startDino() {
   let proxBolo = 0;
 
   let pontos = 0;
-  let t0 = Date.now();
   let terminou = false;
+
+  // Recorde atual
+  const recordeAntigo = S.recordeDino || 0;
 
   const pular = () => {
     if (nebo.noChao && !terminou) {
-      nebo.vy = -19;
+      nebo.vy = -20;
       nebo.noChao = false;
       SOM.nota(700, 0.08, 'sine', 0.1);
       vib(20);
@@ -1531,8 +1533,8 @@ function startDino() {
     if (terminou) return;
     const n = Date.now();
 
-    // Física
-    nebo.vy += 0.9;
+    // Física equilibrada
+    nebo.vy += 1.0;
     nebo.y += nebo.vy;
     if (nebo.y >= chao) {
       nebo.y = chao;
@@ -1540,20 +1542,14 @@ function startDino() {
       nebo.noChao = true;
     }
 
-    // Cria bolos
-    if (n > proxBolo) {
-      bolos.push({
-        x: c.width + 20,
-        tam: 55
-      });
-      // Começa devagar (2.2s) e vai apertando bem devagar
-      const tempoJogo = (n - t0) / 1000;
-      const intervalo = Math.max(1100, 2200 - tempoJogo * 40);
-      proxBolo = n + intervalo;
+    // Cria bolo equilibrado (1 por vez, espera ~1,8s)
+    if (bolos.length === 0 && n > proxBolo) {
+      bolos.push({ x: c.width + 40 });
+      proxBolo = n + 1800;
     }
 
-    // Move bolos
-    const vel = 5.5 + (n - t0) / 25000;
+    // Velocidade equilibrada
+    const vel = 6;
     bolos = bolos.filter(k => {
       k.x -= vel;
 
@@ -1570,10 +1566,24 @@ function startDino() {
         gOn = 0;
 
         S.humor = clamp(S.humor - 3);
-        SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
-        say('Ai! Bati no bolo 😢');
+
+        // 🏆 Novo recorde?
+        let novoRecorde = false;
+        if (pontos > recordeAntigo) {
+          S.recordeDino = pontos;
+          novoRecorde = true;
+        }
+
         if (pontos > 0) ganharMoedas(pontos);
         save();
+
+        if (novoRecorde) {
+          SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.14);
+          say('🏆 NOVO RECORDE! ' + pontos + ' bolos!');
+        } else {
+          SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
+          say('Ai! Bati no bolo 😢');
+        }
         return false;
       }
 
@@ -1601,7 +1611,7 @@ function startDino() {
     x.textAlign = 'right';
     x.fillText('☀️', c.width - 30, 70);
 
-    // Nuvens passando
+    // Nuvens
     x.textAlign = 'center';
     x.fillText('☁️', (n / 60) % (c.width + 100) - 50, 100);
     x.fillText('☁️', (n / 90) % (c.width + 100) - 50, 150);
@@ -1616,7 +1626,6 @@ function startDino() {
     const ex = nebo.x;
     const ey = nebo.y - 35;
 
-    // Olhos (elipses cor-de-rosa)
     x.fillStyle = '#f7d9e4';
     x.beginPath();
     x.ellipse(ex - 14, ey, 14, 16, 0, 0, 7);
@@ -1625,7 +1634,6 @@ function startDino() {
     x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
     x.fill();
 
-    // Contorno dos olhos
     x.strokeStyle = '#5d4f9e';
     x.lineWidth = 3;
     x.beginPath();
@@ -1635,7 +1643,6 @@ function startDino() {
     x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
     x.stroke();
 
-    // Brilhinho
     x.fillStyle = '#fff';
     x.beginPath();
     x.arc(ex - 18, ey - 6, 3, 0, 7);
@@ -1644,7 +1651,6 @@ function startDino() {
     x.arc(ex + 10, ey - 6, 3, 0, 7);
     x.fill();
 
-    // Bochechas rosas
     x.fillStyle = 'rgba(242, 157, 181, .5)';
     x.beginPath();
     x.ellipse(ex - 30, ey + 10, 7, 4, 0, 0, 7);
@@ -1653,27 +1659,94 @@ function startDino() {
     x.ellipse(ex + 30, ey + 10, 7, 4, 0, 0, 7);
     x.fill();
 
-    // HUD
-    x.font = '20px sans-serif';
+    // ---------- HUD ----------
+    x.textAlign = 'left';
+    x.font = '22px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.fillText('🍰 ' + pontos, 20, 40);
+
+    // 🏆 Recorde no canto direito
+    x.textAlign = 'right';
+    x.font = '16px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.fillText('🏆 ' + recordeAntigo, c.width - 20, 40);
+
+    // Bônus: mostra se tá perto de bater
+    if (pontos > recordeAntigo && recordeAntigo > 0) {
+      x.fillStyle = '#2e6b52';
+      x.fillText('🎉 novo recorde!', c.width - 20, 65);
+    }
+  }, 40);
+}
+
+/* --- Dança --- */
+    x.clearRect(0, 0, c.width, c.height);
+
+    // Chão
+    x.fillStyle = '#8b6b4a';
+    x.fillRect(0, chao + 40, c.width, 20);
+    x.fillStyle = '#c9a878';
+    x.fillRect(0, chao + 40, c.width, 6);
+
+    // Sol
+    x.font = '40px serif';
+    x.textAlign = 'right';
+    x.fillText('☀️', c.width - 30, 70);
+
+    // Nuvens
+    x.textAlign = 'center';
+    x.fillText('☁️', (n / 60) % (c.width + 100) - 50, 100);
+    x.fillText('☁️', (n / 90) % (c.width + 100) - 50, 150);
+
+    // Bolos
+    x.font = '55px serif';
+    bolos.forEach(k => {
+      x.fillText('🍰', k.x + 25, chao + 30);
+    });
+
+    // Nébula (só os olhos)
+    const ex = nebo.x;
+    const ey = nebo.y - 35;
+
+    x.fillStyle = '#f7d9e4';
+    x.beginPath();
+    x.ellipse(ex - 14, ey, 14, 16, 0, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
+    x.fill();
+
+    x.strokeStyle = '#5d4f9e';
+    x.lineWidth = 3;
+    x.beginPath();
+    x.ellipse(ex - 14, ey, 14, 16, 0, 0, 7);
+    x.stroke();
+    x.beginPath();
+    x.ellipse(ex + 14, ey, 14, 16, 0, 0, 7);
+    x.stroke();
+
+    x.fillStyle = '#fff';
+    x.beginPath();
+    x.arc(ex - 18, ey - 6, 3, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.arc(ex + 10, ey - 6, 3, 0, 7);
+    x.fill();
+
+    x.fillStyle = 'rgba(242, 157, 181, .5)';
+    x.beginPath();
+    x.ellipse(ex - 30, ey + 10, 7, 4, 0, 0, 7);
+    x.fill();
+    x.beginPath();
+    x.ellipse(ex + 30, ey + 10, 7, 4, 0, 0, 7);
+    x.fill();
+
+    // HUD — só pontos, SEM tempo
+    x.font = '22px sans-serif';
     x.fillStyle = '#5d4f9e';
     x.textAlign = 'left';
-    x.fillText('🍰 ' + pontos + '   ⏱ ' + Math.max(0, 20 - Math.round((n - t0) / 1000)), 20, 40);
-
-    // Fim (tempo)
-    if (n - t0 > 20000) {
-      terminou = true;
-      clearInterval(iv);
-      c.remove();
-      gOn = 0;
-
-      S.humor = clamp(S.humor + 5);
-      S.energia = clamp(S.energia - 3);
-      ganharMoedas(pontos);
-      SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
-      say('Desviou de ' + pontos + ' bolos! +' + pontos + ' 🪙');
-      save();
-    }
-  }, 50);
+    x.fillText('🍰 ' + pontos, 20, 40);
+  }, 40);
 }
 
 /* --- Dança --- */
