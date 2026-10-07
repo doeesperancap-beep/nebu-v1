@@ -676,7 +676,7 @@ addEventListener('pointermove', e => {
     if (Math.abs(dx) > 3) lastDx = dx;
     lastX = e.clientX; lastY = e.clientY;
 
-        if (rev >= 6) {
+        if (rev >= 10) {
       rev = 0; wig();
       pet('tickle', 'Hahaha, cócegas! 🤣');
       S.humor = clamp(S.humor + 4);
