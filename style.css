@@ -792,3 +792,93 @@ body[data-m=dizzy] .eye {
   background: #b8dfd0;
   color: #2e6b52;
 }
+/* ============================================================
+   COMPRAR INGREDIENTES (dentro da Doceria)
+   ============================================================ */
+
+#ing-header {
+  text-align: center;
+  margin-bottom: 14px;
+}
+#ing-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #5d4f9e;
+  font-weight: 700;
+}
+#ing-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #5d4f9e;
+  opacity: .65;
+}
+
+#ing-lista {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ing-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 2px solid #e8d5f0;
+  border-radius: 14px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+  box-shadow: 0 2px 8px rgba(93, 79, 158, .08);
+  position: relative;
+}
+.ing-item:active {
+  transform: scale(.95);
+}
+.ing-item:hover {
+  border-color: #b8dfd0;
+}
+
+.ing-sem-moeda {
+  opacity: .45;
+}
+
+.ing-emoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ing-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ing-nome {
+  font-size: 11px;
+  font-weight: 700;
+  color: #5d4f9e;
+  line-height: 1.2;
+  margin-bottom: 1px;
+  word-wrap: break-word;
+}
+
+.ing-preco {
+  font-size: 10px;
+  color: #2e6b52;
+  font-weight: 600;
+}
+
+.ing-qtd {
+  font-size: 13px;
+  font-weight: 800;
+  color: #b8496b;
+  background: #fbe0e8;
+  padding: 2px 7px;
+  border-radius: 8px;
+  min-width: 22px;
+  text-align: center;
+}
+.ing-qtd:empty {
+  display: none;
+}
