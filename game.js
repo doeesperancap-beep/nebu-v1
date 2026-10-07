@@ -154,26 +154,8 @@ const SABONETES = {
 };
 
 /* ============ 10. MINIGAMES ============ */
-/* ============================================================
-   NÉBULA — game.js
-   Seções:
-     1. Utilidades
-     2. Estado (S) + save/load
-     3. Personalidade
-     4. Rosto / expressões
-     5. Sensores (movimento, bateria)
-     6. Toque (pet, tap, cócegas)
-     7. Tédio automático
-     8. Comida
-     9. Doença / xarope
-    10. Minigames (cesta, borboletas, banho, dança)
-    11. Mundo / lugares
-    12. UI (botões, painéis)
-    13. Loop principal + visibilitychange
-   ============================================================ */
-
+  
 /* ============ 1. UTILIDADES ============ */
-const $ = id => document.getElementById(id);
 const body = document.body;
 const eyes = $('eyes');
 const eyeEls = [...document.querySelectorAll('.eye')];
