@@ -621,3 +621,174 @@ body[data-m=dizzy] .eye {
   border-radius: 8px;
   opacity: .7;
 }
+/* ============================================================
+   LIVRO DE RECEITAS (dentro da bancada)
+   ============================================================ */
+
+#livro-header {
+  margin-bottom: 14px;
+  text-align: center;
+}
+#livro-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  color: #5d4f9e;
+  font-weight: 700;
+}
+#livro-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #5d4f9e;
+  opacity: .65;
+}
+
+#livro-lista {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.livro-receita {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #e8d5f0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+  box-shadow: 0 2px 8px rgba(93, 79, 158, .08);
+}
+.livro-receita:active {
+  transform: scale(.96);
+}
+.livro-receita:hover {
+  border-color: #d8c4ec;
+}
+
+.livro-receita-emoji {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.livro-receita-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.livro-receita-nome {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5d4f9e;
+  line-height: 1.2;
+  margin-bottom: 2px;
+  word-wrap: break-word;
+}
+
+.livro-receita-status {
+  font-size: 10px;
+  font-weight: 600;
+}
+.livro-receita-status.ok { color: #2e6b52; }
+.livro-receita-status.falta { color: #b8496b; }
+
+/* ---------- DETALHE DA RECEITA ---------- */
+#receita-detalhe {
+  text-align: center;
+}
+#receita-detalhe h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+  color: #5d4f9e;
+  font-weight: 700;
+}
+.receita-sub {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #5d4f9e;
+  opacity: .65;
+}
+
+/* Lista de ingredientes que faltam */
+.receita-falta-lista,
+.receita-ing-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.receita-falta-item,
+.receita-ing-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #5d4f9e;
+  box-shadow: 0 2px 6px rgba(93, 79, 158, .06);
+}
+
+.receita-falta-emoji,
+.receita-ing-item span:first-child {
+  font-size: 20px;
+}
+
+.receita-falta-nome,
+.receita-ing-item span:nth-child(2) {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+}
+
+.receita-falta-qtd {
+  font-size: 11px;
+  color: #b8496b;
+  font-weight: 700;
+  background: #fbe0e8;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.receita-ing-qtd {
+  font-size: 11px;
+  color: #2e6b52;
+  font-weight: 700;
+  background: #d8f0e0;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* Botões de ação dentro da bancada */
+.doc-btn-acao {
+  display: block;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform .15s;
+}
+.doc-btn-acao:active {
+  transform: scale(.97);
+}
+
+.doc-btn-cinza {
+  background: #e8e0e8;
+  color: #5d4f9e;
+}
+.doc-btn-roxo {
+  background: #d8c4ec;
+  color: #5d4f9e;
+}
+.doc-btn-verde {
+  background: #b8dfd0;
+  color: #2e6b52;
+}
