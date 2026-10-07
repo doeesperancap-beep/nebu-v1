@@ -2176,6 +2176,21 @@ function abrirTelaSpa() {
 function painelClinica()   { panel('<h3>🏥 Clínica</h3><p style="opacity:.7">Em breve! Vou me cuidar aqui. 💊</p>'); }
 function painelBiblioteca(){ panel('<h3>📚 Biblioteca</h3><p style="opacity:.7">Em breve! Vou ler livros aqui. 📖</p>'); }
 function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em breve! Vou brincar aqui. 🎲</p>'); }
+/* ============ FUNÇÕES AUXILIARES DA DOCERIA ============ */
+
+/* Coloca conteúdo na bancada da Doceria */
+function docMostrarConteudo(html) {
+  const area = document.getElementById('doc-bancada-conteudo');
+  if (area) area.innerHTML = html;
+}
+
+/* Limpa a bancada */
+function docLimparConteudo() {
+  const area = document.getElementById('doc-bancada-conteudo');
+  if (area) area.innerHTML = '';
+}
+
+/* ============ LIVRO DE RECEITAS ============ */
 /* ============ LIVRO DE RECEITAS ============ */
 
 /* Abre o Livro de Receitas na bancada */
