@@ -606,7 +606,7 @@ addEventListener('online',  () => set('happy', 2500, 'Voltou a internet! 📶'))
 const ptrs = new Map();
 let sx = null, sy = null, moved = 0, petD = 0, rev = 0, lastDx = 0;
 let lastX = 0, lastY = 0, pinch0 = 0, multi = 0, pinched = 0, tMulti = 0;
-let hold, taps = [], lastAct = Date.now(), stage = 0;
+let hold, taps = [], lastAct = Date.now(), stage = 0, tickleCool = 0;
 
 const dist = () => {
   const p = [...ptrs.values()];
@@ -677,14 +677,16 @@ addEventListener('pointermove', e => {
     lastX = e.clientX; lastY = e.clientY;
 
         if (rev >= 10) {
+         if (rev >= 10 && Date.now() > tickleCool) {
       rev = 0; wig();
+      tickleCool = Date.now() + 2500;
       pet('tickle', 'Hahaha, cócegas! 🤣');
       S.humor = clamp(S.humor + 4);
       SOM.melodia([N.DO, N.MI, N.SOL], 0.06, 'sine', 0.08);
-    } else if (petD > 700 * pm('thr') && rev < 3) {
+    } else if (petD > 700 * pm('thr') && rev < 3 && Date.now() > tickleCool) {
       pet('carinho', 'Ronrom... 😍');
       heart(e.clientX, e.clientY);
-    } else if (petD > 120 * thrPet() && rev < 3) {
+    } else if (petD > 120 * thrPet() && rev < 3 && Date.now() > tickleCool) {
       SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.08);
       pet('happy', '');
       heart(e.clientX, e.clientY);
