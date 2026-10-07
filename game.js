@@ -2658,23 +2658,7 @@ function finalizarDoce(id, resultado) {
 
   SOM.melodia([N.DO_BAIXO, N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.12);
 
-  setTimeout(() => {
-    document.getElementById('btnVoltarForno').onclick = abrirLivroReceitas;
-  }, 50);
-}
-  // Deu ruim
-  docMostrarConteudo(`
-    <div id="forno-tela">
-      <div id="forno-emoji" class="queimado">💨</div>
-      <h2>Queimou... 😢</h2>
-      <p>O doce se perdeu</p>
-      <button id="btnVoltarForno" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
-    </div>
-  `);
-
-  SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
-
-  setTimeout(() => {
+    setTimeout(() => {
     document.getElementById('btnVoltarForno').onclick = abrirLivroReceitas;
   }, 50);
 }
