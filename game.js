@@ -2329,20 +2329,77 @@ function clicarReceita(id) {
   }, 50);
 }
 
-/* Placeholder — vira função de verdade no Bloco 5 */
+/* ============ COMPRAR INGREDIENTES ============ */
 function abrirIngredientesDoceria() {
   docMostrarConteudo(`
     <div id="ing-header">
       <h2>🫙 Ingredientes</h2>
-      <p>Em breve você vai poder comprar aqui!</p>
+      <p id="ing-moedas">Você tem: 🪙 ${S.moedas || 0}</p>
     </div>
+    <div id="ing-lista"></div>
     <button id="btnVoltarLivro" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
   `);
+  renderIngredientes();
   setTimeout(() => {
     document.getElementById('btnVoltarLivro').onclick = abrirLivroReceitas;
   }, 50);
 }
 
+function renderIngredientes() {
+  const lista = document.getElementById('ing-lista');
+  if (!lista) return;
+
+  let html = '';
+
+  for (const [chave, ing] of Object.entries(INGREDIENTES)) {
+    const qtd = S.ingredientes?.[chave] || 0;
+    const podeComprar = (S.moedas || 0) >= ing.preco;
+
+    html += `
+      <div class="ing-item ${podeComprar ? '' : 'ing-sem-moeda'}" data-ing="${chave}">
+        <div class="ing-emoji">${ing.emoji}</div>
+        <div class="ing-info">
+          <div class="ing-nome">${ing.nome}</div>
+          <div class="ing-preco">🪙 ${ing.preco}</div>
+        </div>
+        <div class="ing-qtd">${qtd > 0 ? 'x' + qtd : ''}</div>
+      </div>
+    `;
+  }
+
+  lista.innerHTML = html;
+
+  // Handlers
+  setTimeout(() => {
+    document.querySelectorAll('.ing-item').forEach(el => {
+      el.onclick = () => comprarIngrediente(el.dataset.ing);
+    });
+  }, 50);
+}
+
+function comprarIngrediente(chave) {
+  const ing = INGREDIENTES[chave];
+  if (!ing) return;
+
+  if ((S.moedas || 0) < ing.preco) {
+    say('Não tenho moedas suficientes... 😢');
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.1);
+    return;
+  }
+
+  // Debita e adiciona
+  S.moedas -= ing.preco;
+  if (!S.ingredientes) S.ingredientes = {};
+  S.ingredientes[chave] = (S.ingredientes[chave] || 0) + 1;
+
+  save();
+  SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.1);
+
+  // Atualiza a tela sem fechar
+  const moedasEl = document.getElementById('ing-moedas');
+  if (moedasEl) moedasEl.textContent = `Você tem: 🪙 ${S.moedas || 0}`;
+  renderIngredientes();
+}
 /* ============ DOCERIA (nova) ============ */
 function abrirDoceria() {
   // Fecha qualquer painel aberto
