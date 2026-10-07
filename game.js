@@ -1668,10 +1668,11 @@ function painelLoja() {
   renderMercado();
 }
 function renderMercado() {
-  const secoes = {
+    const secoes = {
     saudavel:    { emoji: '🥗', nome: 'Saudáveis' },
     industrial:  { emoji: '🍔', nome: 'Industrializados' },
-    doce:        { emoji: '🍰', nome: 'Doces' }
+    doce:        { emoji: '🍰', nome: 'Doces' },
+    ingrediente: { emoji: '🧑‍🍳', nome: 'Ingredientes' }
   };
 
   // Monta HTML de cada seção
@@ -1679,7 +1680,12 @@ function renderMercado() {
   html += `<p style="font-size:13px;opacity:.7;margin:0 0 8px">Você tem: 🪙 ${S.moedas || 0}</p>`;
 
   for (const [tipo, info] of Object.entries(secoes)) {
-    const comidas = Object.entries(CATALOGO).filter(([_, c]) => c.tipo === tipo);
+       let comidas;
+    if (tipo === 'ingrediente') {
+      comidas = Object.entries(INGREDIENTES).map(([k, v]) => [k, { ...v, tipo: 'ingrediente' }]);
+    } else {
+      comidas = Object.entries(CATALOGO).filter(([_, c]) => c.tipo === tipo);
+    }
     if (comidas.length === 0) continue;
 
     html += `<div style="margin:12px 0 6px;font-size:14px"><b>${info.emoji} ${info.nome}</b></div>`;
@@ -1756,8 +1762,14 @@ function renderMercado() {
         S.moedas -= total;
 
         // Adiciona ao estoque
-        Object.entries(carrinho).forEach(([emoji, q]) => {
-          S.estoque[emoji] = (S.estoque[emoji] || 0) + q;
+                Object.entries(carrinho).forEach(([emoji, q]) => {
+          // Ingrediente vai pro S.ingredientes
+          if (INGREDIENTES[emoji]) {
+            S.ingredientes[emoji] = (S.ingredientes[emoji] || 0) + q;
+          } else {
+            // Comida normal vai pro S.estoque
+            S.estoque[emoji] = (S.estoque[emoji] || 0) + q;
+          }
         });
 
         save();
@@ -1975,6 +1987,7 @@ function painelJogos()     { panel('<h3>🎮 Jogos</h3><p style="opacity:.7">Em 
 
 /* ============ DOCERIA ============ */
 function abrirDoceria() {
+    bubble.style.zIndex = '30';
   let doceria = document.getElementById('doceria');
   if (doceria) doceria.remove();
 
