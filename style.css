@@ -990,3 +990,53 @@ body[data-m=dizzy] .eye {
   color: #5d4f9e;
   opacity: .7;
 }
+/* ============================================================
+   MINIGAME DO FORNO (barra de tempo)
+   ============================================================ */
+
+#forno-barra-wrap {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 320px;
+}
+
+#forno-barra {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  background: #f5e8f0;
+  border: 3px solid #d8c4ec;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(93, 79, 158, .12);
+}
+
+#forno-barra-preenche {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 0%;
+  background: linear-gradient(90deg, #f7d9e4 0%, #f9d71c 60%, #ff6b35 100%);
+  border-radius: 14px 0 0 14px;
+  transition: width .05s linear;
+}
+
+#forno-zona-boa {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: rgba(123, 196, 127, .35);
+  border-left: 3px dashed #7bc47f;
+  border-right: 3px dashed #7bc47f;
+  pointer-events: none;
+}
+
+#btnTirarForno {
+  margin-top: 12px;
+  font-size: 16px;
+  padding: 14px;
+}
+
+/* ---------- Resultados do forno ---------- */
+#forno-emoji.queimado {
+  filter: grayscale(1) brightness(.6);
+  animation: trem .1s 6;
+}
