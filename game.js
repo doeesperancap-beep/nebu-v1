@@ -676,7 +676,7 @@ addEventListener('pointermove', e => {
     if (Math.abs(dx) > 3) lastDx = dx;
     lastX = e.clientX; lastY = e.clientY;
 
-        if (rev >= 10) {
+        
          if (rev >= 10 && Date.now() > tickleCool) {
       rev = 0; wig();
       tickleCool = Date.now() + 2500;
