@@ -236,10 +236,13 @@ function gerarID(nome) {
 let S = (() => {
   try {
     const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-    return raw ? { ...DEFAULT, ...raw } : { ...DEFAULT };
+    const s = raw ? { ...DEFAULT, ...raw } : { ...DEFAULT };
+    // Garante que campos novos existam (pra Nébulas antigas)
+    if (!s.ingredientes) s.ingredientes = {};
+    if (!s.docesProntos) s.docesProntos = [];
+    return s;
   } catch { return { ...DEFAULT }; }
 })();
-
 /* Quanto tempo ficou offline (minutos) — calculado UMA vez */
 const awayAtBoot = Math.max(0, (Date.now() - S.last) / 60000);
 
@@ -1765,17 +1768,15 @@ function renderMercado() {
         S.moedas -= total;
 
         // Adiciona ao estoque
-                Object.entries(carrinho).forEach(([emoji, q]) => {
-          // Ingrediente vai pro S.ingredientes
-          if (INGREDIENTES[emoji]) {
-            S.ingredientes[emoji] = (S.ingredientes[emoji] || 0) + q;
-          } else {
-            // Comida normal vai pro S.estoque
-            S.estoque[emoji] = (S.estoque[emoji] || 0) + q;
-          }
-        });
-
-        save();
+             if (!S.ingredientes) S.ingredientes = {};
+if (!S.estoque) S.estoque = {};
+Object.entries(carrinho).forEach(([emoji, q]) => {
+  if (INGREDIENTES[emoji]) {
+    S.ingredientes[emoji] = (S.ingredientes[emoji] || 0) + q;
+  } else {
+    S.estoque[emoji] = (S.estoque[emoji] || 0) + q;
+  }
+});
         SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.08, 'sine', 0.1);
         say('Comprei tudinho! 🛒✨');
         
