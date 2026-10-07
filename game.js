@@ -2191,7 +2191,6 @@ function docLimparConteudo() {
 }
 
 /* ============ LIVRO DE RECEITAS ============ */
-/* ============ LIVRO DE RECEITAS ============ */
 
 /* Abre o Livro de Receitas na bancada */
 function abrirLivroReceitas() {
@@ -2479,7 +2478,7 @@ function finalizarDoce(id, resultado) {
   // Deu ruim
   docMostrarConteudo(`
     <div id="forno-tela">
-      <div id="forno-emoji queimado">💨</div>
+      <div id="forno-emoji" class="queimado">💨</div>
       <h2>Queimou... 😢</h2>
       <p>O doce se perdeu</p>
       <button id="btnVoltarForno" class="doc-btn-acao doc-btn-cinza">← Voltar</button>
