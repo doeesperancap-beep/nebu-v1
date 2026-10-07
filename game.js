@@ -156,6 +156,7 @@ const SABONETES = {
 /* ============ 10. MINIGAMES ============ */
   
 /* ============ 1. UTILIDADES ============ */
+const $ = id => document.getElementById(id);
 const body = document.body;
 const eyes = $('eyes');
 const eyeEls = [...document.querySelectorAll('.eye')];
