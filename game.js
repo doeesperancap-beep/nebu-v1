@@ -85,6 +85,75 @@ async function sairDoFirebase() {
 setInterval(() => {
   if (S.id && S.modo === 'nebo') salvarNoFirebase();
 }, 30000);
+
+/* ============ RECORDE GLOBAL DO DINO ============ */
+
+/* Lê o recorde do Firebase */
+async function lerRecordeDino() {
+  const db = iniciarFirebase();
+  if (!db) return null;
+  try {
+    const doc = await db.collection('recordes').doc('dino').get();
+    if (!doc.exists) return null;
+    return doc.data();
+  } catch (e) {
+    console.error('Erro ao ler recorde:', e);
+    return null;
+  }
+}
+
+/* Salva o recorde no Firebase (só se for maior) */
+async function salvarRecordeDino(pontos, nomeNebo, idNebo) {
+  const db = iniciarFirebase();
+  if (!db) return;
+  try {
+    // Lê o atual
+    const doc = await db.collection('recordes').doc('dino').get();
+    const atual = doc.exists ? doc.data() : null;
+
+    // Só sobrescreve se for MAIOR
+    if (atual && atual.pontos >= pontos) return;
+
+    await db.collection('recordes').doc('dino').set({
+      pontos: pontos,
+      nome: nomeNebo || 'Nebo',
+      id: idNebo || 'sem-id',
+      atualizadoEm: Date.now()
+    });
+    console.log('🏆 Recorde salvo:', pontos, 'por', nomeNebo);
+  } catch (e) {
+    console.error('Erro ao salvar recorde:', e);
+  }
+}
+/* ============ CATÁLOGO DE SABONETES ============ */
+const SABONETES = {
+  lavanda: {
+    nome: 'Lavanda',
+    emoji: '💜',
+    cor: 'rgba(200, 180, 240, .85)',   // espuma lilás
+    fala: 'Aaah, que cheirinho de lavanda... 😌'
+  },
+  limao: {
+    nome: 'Limão',
+    emoji: '🍋',
+    cor: 'rgba(255, 240, 150, .85)',   // espuma amarelinha
+    fala: 'Uia, azedinho! Me acordou! 🍋'
+  },
+  baunilha: {
+    nome: 'Baunilha',
+    emoji: '🤍',
+    cor: 'rgba(255, 245, 230, .9)',    // espuma creme
+    fala: 'Que cheirinho doce... 🥰'
+  },
+  morango: {
+    nome: 'Morango',
+    emoji: '🍓',
+    cor: 'rgba(255, 200, 220, .85)',   // espuma rosa
+    fala: 'Cheirinho de morango! 💗'
+  }
+};
+
+/* ============ 10. MINIGAMES ============ */
 /* ============================================================
    NÉBULA — game.js
    Seções:
@@ -1436,49 +1505,228 @@ function startButterflies() {
 function startBath() {
   P.classList.remove('on');
   gOn = 1;
+
+  // 1. PRIMEIRO: escolher o sabonete
+  escolherSabonete();
+}
+
+/* Tela de escolha do sabonete */
+function escolherSabonete() {
+  const c = document.createElement('canvas');
+  c.width = innerWidth; c.height = innerHeight;
+  c.style.cssText = 'position:fixed;inset:0;z-index:8;background:#f5e8f0';
+  document.body.appendChild(c);
+  const x = c.getContext('2d');
+
+  // Monta os botões (círculos) dos sabonetes
+  const sabKeys = Object.keys(SABONETES);
+  const total = sabKeys.length;
+
+  // Guarda a posição de cada sabonete pra detectar clique
+  let posicoes = [];
+
+  // Desenha a tela
+  function desenhar() {
+    x.clearRect(0, 0, c.width, c.height);
+
+    // Fundo xadrez
+    x.fillStyle = '#f5e8f0';
+    x.fillRect(0, 0, c.width, c.height);
+    x.fillStyle = 'rgba(255, 255, 255, .4)';
+    for (let i = 0; i < c.width; i += 40) {
+      for (let j = 0; j < c.height; j += 40) {
+        if ((i / 40 + j / 40) % 2 === 0) x.fillRect(i, j, 40, 40);
+      }
+    }
+
+    // Título
+    x.font = 'bold 26px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.textAlign = 'center';
+    x.fillText('🛁 Escolha o sabonete', c.width / 2, 60);
+    x.font = '14px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.globalAlpha = .6;
+    x.fillText('Qual vai usar hoje?', c.width / 2, 85);
+    x.globalAlpha = 1;
+
+    // Sabonetes na tela
+    posicoes = [];
+    const raio = Math.min(c.width, c.height) / 7;
+    const espaco = raio * 2.6;
+    const inicioX = (c.width - espaco * (total - 1)) / 2;
+    const y = c.height / 2;
+
+    sabKeys.forEach((k, i) => {
+      const sab = SABONETES[k];
+      const cx = inicioX + espaco * i;
+
+      // Bolha do sabonete
+      x.beginPath();
+      x.arc(cx, y, raio, 0, 7);
+      x.fillStyle = sab.cor;
+      x.fill();
+      x.strokeStyle = '#5d4f9e';
+      x.lineWidth = 3;
+      x.stroke();
+
+      // Brilho
+      x.beginPath();
+      x.arc(cx - raio * 0.3, y - raio * 0.3, raio * 0.15, 0, 7);
+      x.fillStyle = 'rgba(255,255,255,.7)';
+      x.fill();
+
+      // Emoji dentro
+      x.font = `${raio * 1.1}px serif`;
+      x.textAlign = 'center';
+      x.textBaseline = 'middle';
+      x.fillText(sab.emoji, cx, y);
+
+      // Nome embaixo
+      x.font = 'bold 14px sans-serif';
+      x.fillStyle = '#5d4f9e';
+      x.textBaseline = 'top';
+      x.fillText(sab.nome, cx, y + raio + 10);
+
+      posicoes.push({ key: k, x: cx, y, raio });
+    });
+
+    // Botão cancelar
+    x.font = '14px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.globalAlpha = .5;
+    x.textAlign = 'center';
+    x.fillText('Toque pra cancelar', c.width / 2, c.height - 40);
+    x.globalAlpha = 1;
+  }
+
+  desenhar();
+
+  // Clique
+  const clicar = e => {
+    const cx = e.clientX;
+    const cy = e.clientY;
+
+    // Acha qual sabonete foi clicado
+    for (const p of posicoes) {
+      const d = Math.hypot(cx - p.x, cy - p.y);
+      if (d < p.raio) {
+        SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.1);
+        vib(20);
+        c.remove();
+        c.removeEventListener('pointerdown', clicar);
+        comecarBanho(p.key);
+        return;
+      }
+    }
+
+    // Cancelar
+    c.remove();
+    c.removeEventListener('pointerdown', clicar);
+    gOn = 0;
+    SOM.melodia([N.DO_BAIXO], 0.1, 'sine', 0.08);
+  };
+
+  c.addEventListener('pointerdown', clicar);
+}
+
+/* Banho de verdade, com o sabonete escolhido */
+function comecarBanho(sabKey) {
+  const sab = SABONETES[sabKey];
+  if (!sab) return;
+
   const c = document.createElement('canvas');
   c.width = innerWidth; c.height = innerHeight;
   c.style.cssText = 'position:fixed;inset:0;z-index:8';
+  document.body.appendChild(c);
+  const x = c.getContext('2d');
+
+  // Barra embaixo com botão
   const bar = document.createElement('div');
   bar.style.cssText = 'position:fixed;z-index:9;left:0;right:0;bottom:24px;text-align:center';
   const b = document.createElement('button');
   b.style.cssText = 'background:#ffffff26;color:#fff;border:0;border-radius:22px;padding:12px 22px;font-size:17px';
-  b.textContent = '🧼 Pegar o sabonete';
+  b.textContent = '🧼 Esfregar';
   bar.appendChild(b);
   document.body.append(c, bar);
-  const x = c.getContext('2d');
+
+  // Sabonete no canto (visual)
+  const saboneteEl = document.createElement('div');
+  saboneteEl.textContent = sab.emoji;
+  saboneteEl.style.cssText = `
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    font-size: 50px;
+    z-index: 9;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 8px rgba(93,79,158,.3));
+    animation: flt 2s ease-in-out infinite;
+  `;
+  document.body.appendChild(saboneteEl);
+
   let step = 0, foam = [], down = 0;
-  say('Hora do banho! 🛁');
+
+  say(sab.fala, 3200);
 
   const draw = () => {
     x.clearRect(0, 0, c.width, c.height);
     foam.forEach(f => {
-      x.beginPath(); x.arc(f.x, f.y, f.r, 0, 7);
-      x.fillStyle = 'rgba(255,255,255,.78)'; x.fill();
+      x.beginPath();
+      x.arc(f.x, f.y, f.r, 0, 7);
+      x.fillStyle = sab.cor;
+      x.fill();
+      // Brilhinho na espuma
+      x.beginPath();
+      x.arc(f.x - f.r * 0.3, f.y - f.r * 0.3, f.r * 0.2, 0, 7);
+      x.fillStyle = 'rgba(255,255,255,.6)';
+      x.fill();
     });
   };
 
   b.onclick = () => {
-    if (step === 0) { step = 1; b.style.display = 'none'; say('Arraste o dedo para esfregar 🫧'); }
-    else if (step === 2) { step = 3; b.style.display = 'none'; say('Agora enxágue arrastando 🚿'); }
+    if (step === 0) {
+      step = 1;
+      b.style.display = 'none';
+      say('Arraste o dedo para esfregar 🫧');
+    } else if (step === 2) {
+      step = 3;
+      b.style.display = 'none';
+      say('Agora enxágue arrastando 🚿');
+    }
   };
+
   c.onpointerdown = () => down = 1;
   c.onpointerup = c.onpointercancel = () => down = 0;
   c.onpointermove = e => {
     if (!down || step < 1 || step === 2) return;
     const px = e.clientX, py = e.clientY;
+
     if (step === 1) {
-      foam.push({ x: px + Math.random() * 30 - 15, y: py + Math.random() * 30 - 15, r: 14 + Math.random() * 16 });
-      set('sleepy', 1500, foam.length === 1 ? 'Aaah, que gostoso... 😌' : '');
-      if (foam.length >= 70) { step = 2; b.textContent = '🚿 Enxaguar'; b.style.display = ''; }
+      foam.push({
+        x: px + Math.random() * 30 - 15,
+        y: py + Math.random() * 30 - 15,
+        r: 14 + Math.random() * 16
+      });
+      set('sleepy', 1500, foam.length === 1 ? sab.fala : '');
+      if (foam.length >= 70) {
+        step = 2;
+        b.textContent = '🚿 Enxaguar';
+        b.style.display = '';
+      }
     } else if (step === 3) {
       foam = foam.filter(f => Math.hypot(f.x - px, f.y - py) > 55);
       if (!foam.length) {
-        c.remove(); bar.remove(); gOn = 0;
+        // Acabou!
+        c.remove();
+        bar.remove();
+        saboneteEl.remove();
+        gOn = 0;
+
         S.humor = clamp(S.humor + 8);
         S.saude = clamp(S.saude + 3);
-       say('Limpinha! ✨');
-       ganharMoedas(5);
+        say('Limpinha com cheirinho de ' + sab.nome.toLowerCase() + '! ✨');
+        ganharMoedas(5);
         startDance(6);
         setTimeout(() => set('carinho', 2500, '🥰'), 6200);
         save();
@@ -1516,12 +1764,24 @@ function startDino() {
   let pontos = 0;
   let terminou = false;
 
-  // Recorde atual
-  const recordeAntigo = S.recordeDino || 0;
+  // Recorde (local por enquanto, depois vem do Firebase)
+  let recordePontos = S.recordeDino || 0;
+  let recordeNome = 'Você';
+
+  // Busca o recorde global
+  lerRecordeDino().then(rec => {
+    if (rec && rec.pontos > recordePontos) {
+      recordePontos = rec.pontos;
+      recordeNome = rec.nome || 'Nebo';
+    } else if (rec) {
+      // Mesmo se o local for maior, mostra o global como referência
+      recordeNome = rec.nome || 'Nebo';
+    }
+  });
 
   const pular = () => {
     if (nebo.noChao && !terminou) {
-      nebo.vy = -20;
+      nebo.vy = -22;
       nebo.noChao = false;
       SOM.nota(700, 0.08, 'sine', 0.1);
       vib(20);
@@ -1533,8 +1793,8 @@ function startDino() {
     if (terminou) return;
     const n = Date.now();
 
-    // Física equilibrada
-    nebo.vy += 1.0;
+    // Física
+    nebo.vy += 1.5;
     nebo.y += nebo.vy;
     if (nebo.y >= chao) {
       nebo.y = chao;
@@ -1542,14 +1802,14 @@ function startDino() {
       nebo.noChao = true;
     }
 
-    // Cria bolo equilibrado (1 por vez, espera ~1,8s)
+    // Cria bolo
     if (bolos.length === 0 && n > proxBolo) {
       bolos.push({ x: c.width + 40 });
-      proxBolo = n + 1800;
+      proxBolo = n + 1400;
     }
 
-    // Velocidade equilibrada
-    const vel = 6;
+    // Velocidade
+    const vel = 10;
     bolos = bolos.filter(k => {
       k.x -= vel;
 
@@ -1567,19 +1827,24 @@ function startDino() {
 
         S.humor = clamp(S.humor - 3);
 
-        // 🏆 Novo recorde?
-        let novoRecorde = false;
-        if (pontos > recordeAntigo) {
+        // 🏆 Novo recorde LOCAL?
+        let novoRecordeLocal = false;
+        if (pontos > (S.recordeDino || 0)) {
           S.recordeDino = pontos;
-          novoRecorde = true;
+          novoRecordeLocal = true;
         }
 
         if (pontos > 0) ganharMoedas(pontos);
         save();
 
-        if (novoRecorde) {
+        // 🌐 Tenta salvar no Firebase (só se for maior que o global)
+        if (pontos > recordePontos) {
+          salvarRecordeDino(pontos, S.nome || 'Nebo', S.id || 'sem-id');
+        }
+
+        if (novoRecordeLocal || pontos > recordePontos) {
           SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.14);
-          say('🏆 NOVO RECORDE! ' + pontos + ' bolos!');
+          say('🏆 NOVO RECORDE GLOBAL! ' + pontos + ' bolos!');
         } else {
           SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
           say('Ai! Bati no bolo 😢');
@@ -1665,20 +1930,19 @@ function startDino() {
     x.fillStyle = '#5d4f9e';
     x.fillText('🍰 ' + pontos, 20, 40);
 
-    // 🏆 Recorde no canto direito
+    // 🏆 Recorde global (com nome)
     x.textAlign = 'right';
-    x.font = '16px sans-serif';
+    x.font = '14px sans-serif';
     x.fillStyle = '#5d4f9e';
-    x.fillText('🏆 ' + recordeAntigo, c.width - 20, 40);
+    x.fillText('🏆 ' + recordeNome + ' — ' + recordePontos, c.width - 20, 40);
 
-    // Bônus: mostra se tá perto de bater
-    if (pontos > recordeAntigo && recordeAntigo > 0) {
+    // Aviso se tá batendo o recorde global
+    if (pontos > recordePontos && recordePontos > 0) {
       x.fillStyle = '#2e6b52';
-      x.fillText('🎉 novo recorde!', c.width - 20, 65);
+      x.fillText('🎉 batendo o recorde!', c.width - 20, 62);
     }
   }, 40);
 }
-
 
 /* --- Dança --- */
 const STY = {
