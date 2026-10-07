@@ -1357,9 +1357,9 @@ function startGame() {
       }
       return f.y < c.height;
     });
-    x.font = '20px sans-serif'; x.fillStyle = '#fff';
-    x.fillText('🍎 ' + score + '   ⏱ ' + Math.max(0, 20 - Math.round((n - t0) / 1000)), c.width / 2, 50);
-    if (n - t0 > 20000) {
+       x.font = '20px sans-serif'; x.fillStyle = '#fff';
+    x.fillText('🍎 ' + score + '   ⏱ ' + Math.max(0, 40 - Math.round((n - t0) / 1000)), c.width / 2, 50);
+    if (n - t0 > 40000)  {
       clearInterval(iv); c.remove(); gOn = 0;
       S.humor = clamp(S.humor + Math.min(25, score * 3 * pm('play')));
       S.energia = clamp(S.energia - 4);
@@ -1487,6 +1487,159 @@ function startBath() {
     draw();
   };
 }
+/* ============ JOGO DO DINO ============ */
+function startDino() {
+  P.classList.remove('on');
+  gOn = 1;
+
+  const c = document.createElement('canvas');
+  c.width = innerWidth; c.height = innerHeight;
+  c.style.cssText = 'position:fixed;inset:0;z-index:8;background:#f5e8d0';
+  document.body.appendChild(c);
+  const x = c.getContext('2d');
+
+  // Dino
+  const dino = { x: 60, y: 0, vy: 0, tam: 50, noChao: true };
+  const chao = c.height - 100;
+  dino.y = chao;
+
+  // Cactos
+  let cactos = [];
+  let proxCacto = 0;
+
+  // Pontuação
+  let pontos = 0;
+  let pulados = 0;
+  let t0 = Date.now();
+  let terminou = false;
+
+  // Pular
+  const pular = () => {
+    if (dino.noChao && !terminou) {
+      dino.vy = -14;
+      dino.noChao = false;
+      SOM.nota(600, 0.1, 'sine', 0.1);
+    }
+  };
+  c.onpointerdown = pular;
+
+  const iv = setInterval(() => {
+    if (terminou) return;
+    const n = Date.now();
+    const dt = 0.05;   // ~50ms por frame
+
+    // Gravidade
+    dino.vy += 0.6;
+    dino.y += dino.vy;
+    if (dino.y >= chao) {
+      dino.y = chao;
+      dino.vy = 0;
+      dino.noChao = true;
+    }
+
+    // Cria cactos
+    if (n > proxCacto) {
+      cactos.push({
+        x: c.width + 20,
+        tam: 40 + Math.random() * 20
+      });
+      // Intervalo diminui com o tempo (fica mais difícil)
+      const tempoJogo = (n - t0) / 1000;
+      const intervalo = Math.max(700, 1400 - tempoJogo * 30);
+      proxCacto = n + intervalo;
+    }
+
+    // Move cactos
+    const vel = 5 + (n - t0) / 15000;   // acelera devagar
+    cactos = cactos.filter(k => {
+      k.x -= vel;
+
+      // Colisão?
+      const bateu =
+        dino.x + 40 > k.x &&
+        dino.x < k.x + k.tam &&
+        dino.y + 40 > chao - k.tam + 10;
+
+      if (bateu) {
+        terminou = true;
+        clearInterval(iv);
+        c.remove();
+        gOn = 0;
+
+        S.humor = clamp(S.humor - 3);
+        SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.2, 'sawtooth', 0.1);
+        say('Ai! Bati no cacto 😢');
+        if (pontos > 0) ganharMoedas(pontos);
+        save();
+        return false;
+      }
+
+      // Passou? Conta ponto
+      if (k.x < dino.x - 20 && !k._contado) {
+        k._contado = true;
+        pontos += 1;
+        pulados++;
+        SOM.nota(800, 0.06, 'sine', 0.08);
+      }
+
+      return k.x > -100;
+    });
+
+    // Desenha
+    x.clearRect(0, 0, c.width, c.height);
+
+    // Chão
+    x.fillStyle = '#8b6b4a';
+    x.fillRect(0, chao + 40, c.width, 20);
+    x.fillStyle = '#c9a878';
+    x.fillRect(0, chao + 40, c.width, 6);
+
+    // Sol
+    x.font = '40px serif';
+    x.textAlign = 'right';
+    x.fillText('☀️', c.width - 30, 70);
+
+    // Nuvens
+    x.font = '40px serif';
+    x.textAlign = 'center';
+    x.fillText('☁️', (n / 60) % (c.width + 100) - 50, 100);
+    x.fillText('☁️', (n / 90) % (c.width + 100) - 50, 150);
+
+    // Dino
+    x.font = '60px serif';
+    x.textAlign = 'center';
+    x.fillText('🦖', dino.x + 20, dino.y + 30);
+
+    // Cactos
+    x.font = '50px serif';
+    cactos.forEach(k => {
+      x.fillText('🌵', k.x + k.tam / 2, chao + 30);
+    });
+
+    // HUD
+    x.font = '20px sans-serif';
+    x.fillStyle = '#5d4f9e';
+    x.textAlign = 'left';
+    x.fillText('🌵 ' + pontos + '   ⏱ ' + Math.max(0, 20 - Math.round((n - t0) / 1000)), 20, 40);
+
+    // Fim de jogo (tempo)
+    if (n - t0 > 20000) {
+      terminou = true;
+      clearInterval(iv);
+      c.remove();
+      gOn = 0;
+
+      S.humor = clamp(S.humor + 5);
+      S.energia = clamp(S.energia - 3);
+      ganharMoedas(pontos);
+      SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.1, 'sine', 0.12);
+      say('Correu bem! +' + pontos + ' 🪙');
+      save();
+    }
+  }, 50);
+}
+
+/* --- Dança --- */
 
 /* --- Dança --- */
 const STY = {
@@ -2875,8 +3028,9 @@ P.onclick = e => {
   else if (d.f) eat(d.f);
   else if (d.p) visit(d.p);
   else if (d.pers) choose(d.pers);
-  else if (d.g === 'f') startGame();
+    else if (d.g === 'f') startGame();
   else if (d.g === 'b') startButterflies();
+  else if (d.g === 'd') startDino();
   else if (d.x === 'dance') { P.classList.remove('on'); startDance(10); }
 };
 /* ============ BOUTIQUE ============ */
@@ -3141,7 +3295,11 @@ $('bCuidar').onclick = () => panel(
   (S.sick > Date.now() ? '<button data-x="xarope">💊 Xarope</button>' : '')
 );
 $('bBrincar').onclick = () => panel(
-  '<h3>🎮 Brincar</h3><button data-g="f">🍎 Cesta de Frutas</button><button data-g="b">🦋 Borboletas</button><button data-x="dance">💃 Dançar</button>'
+  '<h3>🎮 Brincar</h3>' +
+  '<button data-g="f">🍎 Cesta de Frutas</button>' +
+  '<button data-g="b">🦋 Borboletas</button>' +
+  '<button data-g="d">🦖 Dino</button>' +
+  '<button data-x="dance">💃 Dançar</button>'
 );
 $('bMundo').onclick = mundo;
 $('bXarope').onclick = xarope;
