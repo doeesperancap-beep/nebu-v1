@@ -1117,9 +1117,9 @@ if (S.estoque[f] <= 0) delete S.estoque[f];
     setTimeout(() => heart(innerWidth / 2, innerHeight / 2), 300);
   }
 
-  // 🎁 Bônus se for doce caseiro
+   // 🎁 Bônus se for doce caseiro
   if (ehCaseiro) {
-    let bonus = 15;
+    let bonus = 30;
     if ((S.favoritas || []).includes(chaveReal)) bonus += 15;   // favorita = +15 extra
 
     ganharMoedas(bonus);
@@ -1127,7 +1127,6 @@ if (S.estoque[f] <= 0) delete S.estoque[f];
       say(`Que delícia! +${bonus} 🪙 de carinho 💗`, 3500);
     }, 800);
   }
-
   save();
 }
 function foodTray() {
