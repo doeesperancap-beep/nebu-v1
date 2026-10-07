@@ -676,14 +676,15 @@ addEventListener('pointermove', e => {
     if (Math.abs(dx) > 3) lastDx = dx;
     lastX = e.clientX; lastY = e.clientY;
 
-    if (rev >= 12) {
+        if (rev >= 6) {
       rev = 0; wig();
       pet('tickle', 'Hahaha, cócegas! 🤣');
       S.humor = clamp(S.humor + 4);
-    } else if (petD > 700 * pm('thr')) {
+      SOM.melodia([N.DO, N.MI, N.SOL], 0.06, 'sine', 0.08);
+    } else if (petD > 700 * pm('thr') && rev < 3) {
       pet('carinho', 'Ronrom... 😍');
       heart(e.clientX, e.clientY);
-    } else if (petD > 120 * thrPet()) {
+    } else if (petD > 120 * thrPet() && rev < 3) {
       SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.08);
       pet('happy', '');
       heart(e.clientX, e.clientY);
