@@ -85,46 +85,6 @@ async function sairDoFirebase() {
 setInterval(() => {
   if (S.id && S.modo === 'nebo') salvarNoFirebase();
 }, 30000);
-
-/* ============ RECORDE GLOBAL DO DINO ============ */
-
-/* Lê o recorde do Firebase */
-async function lerRecordeDino() {
-  const db = iniciarFirebase();
-  if (!db) return null;
-  try {
-    const doc = await db.collection('recordes').doc('dino').get();
-    if (!doc.exists) return null;
-    return doc.data();
-  } catch (e) {
-    console.error('Erro ao ler recorde:', e);
-    return null;
-  }
-}
-
-/* Salva o recorde no Firebase (só se for maior) */
-async function salvarRecordeDino(pontos, nomeNebo, idNebo) {
-  const db = iniciarFirebase();
-  if (!db) return;
-  try {
-    // Lê o atual
-    const doc = await db.collection('recordes').doc('dino').get();
-    const atual = doc.exists ? doc.data() : null;
-
-    // Só sobrescreve se for MAIOR
-    if (atual && atual.pontos >= pontos) return;
-
-    await db.collection('recordes').doc('dino').set({
-      pontos: pontos,
-      nome: nomeNebo || 'Nebo',
-      id: idNebo || 'sem-id',
-      atualizadoEm: Date.now()
-    });
-    console.log('🏆 Recorde salvo:', pontos, 'por', nomeNebo);
-  } catch (e) {
-    console.error('Erro ao salvar recorde:', e);
-  }
-}
 /* ============ CATÁLOGO DE SABONETES ============ */
 const SABONETES = {
   lavanda: {
