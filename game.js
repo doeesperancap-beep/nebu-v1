@@ -3230,6 +3230,21 @@ P.onclick = e => {
   // Fechar
   if (d.x === 'close') { P.classList.remove('on'); pararMusicaMercado(); }
 
+  // MODO (Nébula ou Cidade)
+  if (d.modo) {
+    S.modo = d.modo;
+    save();
+    P.classList.remove('on');
+    iniciarModo();
+    return;
+  }
+
+  // PERSONALIDADE
+  if (d.pers) {
+    choose(d.pers);
+    return;
+  }
+
   // Conectar / Desconectar
   else if (d.x === 'conectar') { P.classList.remove('on'); painelConectar(); }
   else if (d.x === 'desconectar') {
@@ -3239,6 +3254,7 @@ P.onclick = e => {
     say('Desconectei...');
     P.classList.remove('on');
   }
+    
 
   // Lugares da cidade
   else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
