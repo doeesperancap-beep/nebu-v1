@@ -3230,7 +3230,7 @@ P.onclick = e => {
   // Fechar
   if (d.x === 'close') { P.classList.remove('on'); pararMusicaMercado(); }
 
-  // MODO (Nébula ou Cidade)
+    // MODO (Nébula ou Cidade)
   if (d.modo) {
     S.modo = d.modo;
     save();
