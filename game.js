@@ -3533,6 +3533,26 @@ $('bBrincar').onclick = () => panel(
 $('bMundo').onclick = mundo;
 $('bXarope').onclick = xarope;
 
+/* ============ XAROPE (remédio quando doente) ============ */
+function xarope() {
+  if (!S.sick || S.sick <= Date.now()) {
+    say('Não estou doente agora... 🙂');
+    return;
+  }
+  S.sick = 0;
+  S.saude = clamp(S.saude + 15);
+  S.humor = clamp(S.humor + 3);
+  P.classList.remove('on');
+  say('Xarope tomado! Já me sinto melhor 🍯');
+  set('happy', 2500);
+  if (bXarope) bXarope.style.display = 'none';
+  save();
+}
+/* ============ TICK DA COMIDA ============ */
+function foodTick() {
+  prefs();
+}
+
 /* ============ 13. LOOP PRINCIPAL ============ */
 prefs();
 aplicarVisual();   // ← ADICIONA (aplica o que tava equipado)
