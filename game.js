@@ -1212,6 +1212,195 @@ function foodTray() {
     }).join('')
   );
 }
+
+/* ============ CATÁLOGO DE LIVROS (Biblioteca) ============ */
+/* Cada livro: id, nome, autor, preco, cor (capa), cor2 (detalhe), raridade */
+const LIVROS = {
+  divinos_rivais: {
+    nome: 'Divinos Rivais',
+    autor: 'Rebecca Ross',
+    preco: 35,
+    cor: '#1a2456',      // azul-marinho
+    cor2: '#d4af37',     // dourado
+    raridade: 'comum'
+  },
+  promessas_crueis: {
+    nome: 'Promessas Cruéis',
+    autor: 'Rebecca Ross',
+    preco: 38,
+    cor: '#0d0d0d',
+    cor2: '#c1272d',
+    raridade: 'comum'
+  },
+  era_uma_vez: {
+    nome: 'Era Uma Vez um Coração Partido',
+    autor: 'Stephanie Garber',
+    preco: 35,
+    cor: '#141414',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  principe_cruel: {
+    nome: 'O Príncipe Cruel',
+    autor: 'Holly Black',
+    preco: 38,
+    cor: '#f5f0e0',
+    cor2: '#c9a227',
+    raridade: 'comum'
+  },
+  assistente_vilao: {
+    nome: 'Assistente do Vilão',
+    autor: 'Hannah Nicole Maehrer',
+    preco: 36,
+    cor: '#3d1e5c',
+    cor2: '#b8860b',
+    raridade: 'comum'
+  },
+  jogos_heranca: {
+    nome: 'Jogos de Herança',
+    autor: 'Jennifer Lynn Barnes',
+    preco: 38,
+    cor: '#1a1a1a',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  nao_e_filmes: {
+    nome: 'Não É Como nos Filmes',
+    autor: 'Lynn Painter',
+    preco: 32,
+    cor: '#f5b8c8',
+    cor2: '#e895ab',
+    raridade: 'comum'
+  },
+  mil_vezes_amor: {
+    nome: 'Mil Vezes Amor',
+    autor: 'Taylor Jenkins Reid',
+    preco: 30,
+    cor: '#a8c8e0',
+    cor2: '#f5b8c8',
+    raridade: 'comum'
+  },
+  orgulho_preconceito: {
+    nome: 'Orgulho e Preconceito',
+    autor: 'Jane Austen',
+    preco: 28,
+    cor: '#4a2c1a',
+    cor2: '#c9a227',
+    raridade: 'comum'
+  },
+  iracema: {
+    nome: 'Iracema',
+    autor: 'José de Alencar',
+    preco: 25,
+    cor: '#8b1a1a',
+    cor2: '#2d5016',
+    raridade: 'comum'
+  },
+  morro_ventos: {
+    nome: 'O Morro dos Ventos Uivantes',
+    autor: 'Emily Brontë',
+    preco: 30,
+    cor: '#2a2a2a',
+    cor2: '#8b8b8b',
+    raridade: 'comum'
+  },
+  hp_pedra: {
+    nome: 'Harry Potter e a Pedra Filosofal',
+    autor: 'J.K. Rowling',
+    preco: 30,
+    cor: '#6a3d8a',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  hp_azkaban: {
+    nome: 'Harry Potter e o Prisioneiro de Azkaban',
+    autor: 'J.K. Rowling',
+    preco: 35,
+    cor: '#1e3a5f',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  hp_calice: {
+    nome: 'Harry Potter e o Cálice de Fogo',
+    autor: 'J.K. Rowling',
+    preco: 40,
+    cor: '#1a2456',
+    cor2: '#e87a2a',
+    raridade: 'comum'
+  },
+  pj_ladrao: {
+    nome: 'Percy Jackson e o Ladrão de Raios',
+    autor: 'Rick Riordan',
+    preco: 30,
+    cor: '#1e5a8a',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  pj_mar: {
+    nome: 'Percy Jackson e o Mar de Monstros',
+    autor: 'Rick Riordan',
+    preco: 35,
+    cor: '#2d7a7a',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  pj_tita: {
+    nome: 'Percy Jackson e a Maldição do Titã',
+    autor: 'Rick Riordan',
+    preco: 35,
+    cor: '#2d5016',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  odpd_1: {
+    nome: 'O Diário de uma Princesa Desastrada',
+    autor: 'Maidy Lacerda',
+    preco: 35,
+    cor: '#f5b8d0',
+    cor2: '#d4708a',
+    raridade: 'comum'
+  },
+  odpd_2: {
+    nome: 'O Diário de uma Princesa Desastrada 2',
+    autor: 'Maidy Lacerda',
+    preco: 35,
+    cor: '#f0a0c0',
+    cor2: '#c85a7a',
+    raridade: 'comum'
+  },
+  odpd_3: {
+    nome: 'O Diário de uma Princesa Desastrada 3',
+    autor: 'Maidy Lacerda',
+    preco: 38,
+    cor: '#e888b0',
+    cor2: '#b84060',
+    raridade: 'comum'
+  },
+  odpd_4: {
+    nome: 'O Diário de uma Princesa Desastrada 4',
+    autor: 'Maidy Lacerda',
+    preco: 40,
+    cor: '#e070a0',
+    cor2: '#a83050',
+    raridade: 'comum'
+  },
+  scorpio_1: {
+    nome: 'O Caderno de Maldades do Scorpio',
+    autor: 'Maidy Lacerda',
+    preco: 38,
+    cor: '#3d1e5c',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  },
+  scorpio_2: {
+    nome: 'O Caderno de Maldades do Scorpio 2',
+    autor: 'Maidy Lacerda',
+    preco: 40,
+    cor: '#2a0d3d',
+    cor2: '#d4af37',
+    raridade: 'comum'
+  }
+};
 /* ============ CATÁLOGO DA BOUTIQUE ============ */
 const BOUTIQUE = {
   cabeca: {
