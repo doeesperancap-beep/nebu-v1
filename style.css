@@ -1040,3 +1040,331 @@ body[data-m=dizzy] .eye {
   filter: grayscale(1) brightness(.6);
   animation: trem .1s 6;
 }
+
+
+/* ============================================================
+   BIBLIOTECA (tela cheia, CSS puro — estilo da cozinha)
+   ============================================================ */
+
+#biblioteca {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: block;
+  overflow: hidden;
+  background: #d8c4e0;
+  font-family: system-ui, sans-serif;
+}
+
+/* ---------- TOPO (Sair / Loja) ---------- */
+#bib-topo {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 18px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 10;
+  pointer-events: none;
+}
+#bib-topo > * { pointer-events: auto; }
+
+.bib-btn-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e8d5f0;
+  color: #7a5fa8;
+  border: 3px solid #f0d8ff;
+  border-radius: 30px;
+  padding: 10px 22px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(122, 95, 168, .25);
+  transition: transform .15s;
+  position: relative;
+}
+.bib-btn-topo:active { transform: scale(.95); }
+
+/* Estrelinhas decorativas nos botões */
+.bib-btn-topo::before,
+.bib-btn-topo::after {
+  content: "✦";
+  position: absolute;
+  font-size: 10px;
+  color: #f5d76e;
+  opacity: .9;
+}
+.bib-btn-topo::before { top: -4px; right: 14px; }
+.bib-btn-topo::after  { bottom: -4px; left: 14px; }
+
+.bib-btn-topo svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ---------- PAREDE ---------- */
+#bib-parede {
+  position: absolute;
+  inset: 0 0 28% 0;
+  background: linear-gradient(180deg, #c8b0d8 0%, #b8a0cc 100%);
+  overflow: hidden;
+}
+
+/* Painéis verticais sutis */
+#bib-parede::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 46px,
+    rgba(255,255,255,.06) 46px,
+    rgba(255,255,255,.06) 48px
+  );
+}
+
+/* ---------- JANELA (esquerda) ---------- */
+#bib-janela {
+  position: absolute;
+  top: 12%;
+  left: 4%;
+  width: 20%;
+  max-width: 130px;
+  height: 55%;
+  background: linear-gradient(180deg, #f5e0c8 0%, #e8c8a0 100%);
+  border: 8px solid #f0e0d0;
+  border-radius: 60px 60px 8px 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15),
+              inset 0 0 40px rgba(255, 240, 200, .5);
+  overflow: hidden;
+}
+/* Grade da janela */
+#bib-janela::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#f0e0d0 4px, transparent 4px),
+    linear-gradient(90deg, #f0e0d0 4px, transparent 4px);
+  background-size: 100% 33%, 33% 100%;
+}
+/* Luz entrando */
+#bib-janela::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 200%;
+  height: 150%;
+  background: radial-gradient(ellipse at top left,
+    rgba(255, 240, 200, .55) 0%,
+    transparent 60%);
+  pointer-events: none;
+}
+
+/* ---------- QUADROS (direita) ---------- */
+.bib-quadro {
+  position: absolute;
+  right: 8%;
+  width: 50px;
+  height: 60px;
+  background: #f5f0e0;
+  border: 5px solid #d8b890;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+.bib-quadro.q1 { top: 22%; }
+.bib-quadro.q2 { top: 42%; }
+
+/* ---------- ESTANTE ---------- */
+#bib-estante {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62%;
+  max-width: 340px;
+  height: 72%;
+  background: linear-gradient(180deg, #f5ede0 0%, #e8d8c8 100%);
+  border-radius: 12px;
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.25),
+    inset 0 0 20px rgba(255,255,255,.4);
+  z-index: 5;
+}
+
+/* Moldura superior com estrela */
+#bib-estante::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 30px;
+  background: linear-gradient(180deg, #f5ede0, #e8d8c8);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.1);
+}
+#bib-estante::after {
+  content: "⭐";
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 34px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));
+  z-index: 2;
+}
+
+/* Fundo interno lilás (parede atrás dos livros) */
+#bib-estante-fundo {
+  position: absolute;
+  inset: 12px 22px;
+  background: linear-gradient(180deg, #a888c0 0%, #9878b0 100%);
+  border-radius: 4px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+#bib-estante-fundo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 18px,
+    rgba(255,255,255,.05) 18px,
+    rgba(255,255,255,.05) 20px
+  );
+}
+
+/* Prateleiras (as 4 fileiras) */
+.bib-prateleira {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  height: 10px;
+  background: linear-gradient(180deg, #f5ede0 0%, #d8c8b0 100%);
+  border-radius: 3px;
+  box-shadow:
+    0 3px 6px rgba(0,0,0,.2),
+    inset 0 1px 2px rgba(255,255,255,.6);
+  z-index: 3;
+}
+.bib-prateleira.p1 { top: 22%; }
+.bib-prateleira.p2 { top: 42%; }
+.bib-prateleira.p3 { top: 62%; }
+.bib-prateleira.p4 { top: 82%; }
+
+/* Base da estante (rodapé bonito) */
+#bib-base {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(180deg, #f5ede0 0%, #d8c8b0 100%);
+  border-radius: 0 0 12px 12px;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,.5);
+}
+#bib-base::before {
+  content: "✦";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  color: #b89cc8;
+}
+
+/* ---------- CHÃO ---------- */
+#bib-chao {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 28%;
+  background: linear-gradient(180deg, #d8b890 0%, #b89868 100%);
+  box-shadow: inset 0 8px 16px rgba(0,0,0,.15);
+}
+#bib-chao::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 80px,
+    rgba(0,0,0,.08) 80px,
+    rgba(0,0,0,.08) 82px
+  );
+}
+
+/* ---------- TAPETE ---------- */
+#bib-tapete {
+  position: absolute;
+  bottom: 4%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  max-width: 400px;
+  height: 12%;
+  max-height: 80px;
+  background: linear-gradient(180deg, #d8c4ec 0%, #b8a0cc 100%);
+  border-radius: 12px;
+  border: 4px solid #c8b0d8;
+  box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+#bib-tapete::before,
+#bib-tapete::after {
+  content: "✦";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #f5d76e;
+  opacity: .8;
+}
+#bib-tapete::before { left: 12px; }
+#bib-tapete::after  { right: 12px; }
+
+/* ---------- PLANTINHA (canto direito) ---------- */
+#bib-planta {
+  position: absolute;
+  bottom: 28%;
+  right: 4%;
+  width: 50px;
+  height: 70px;
+  z-index: 6;
+}
+#bib-planta::before {
+  content: "🌿";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 50px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.2));
+}
+#bib-planta::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(180deg, #f0e0d0 0%, #d8c0a8 100%);
+  border-radius: 50% 50% 40% 40%;
+  box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
