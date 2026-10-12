@@ -3411,6 +3411,191 @@ function abrirDoceria() {
 }
 
 
+/* ============ DESENHAR A ESTANTE (espaços + livros) ============ */
+const ESTANTE_LUGARES = 24;  // 4 prateleiras × 6 espaços
+
+function desenharEstante(bib) {
+  const fileiras = bib.querySelectorAll('.bib-fileira');
+  if (!fileiras.length) return;
+
+  // Pega o que tá salvo (Etapa 4 vai salvar; por enquanto inicia vazio)
+  const comprados = S.livrosComprados || [];
+  const estante = S.estante || {};   // { "0": "divinos_rivais", "1": "hp_pedra", ... }
+
+  // Livros que estão na estante (por índice)
+  const livrosNaEstante = new Set(Object.values(estante));
+
+  // Livros comprados que AINDA NÃO estão na estante (pro fantasminha)
+  const disponiveis = comprados.filter(id => !livrosNaEstante.has(id));
+  const temDisponiveis = disponiveis.length > 0;
+
+  // Distribui 6 espaços por fileira
+  fileiras.forEach((fileira, fi) => {
+    fileira.innerHTML = '';
+    for (let i = 0; i < 6; i++) {
+      const idx = fi * 6 + i;
+      const livroId = estante[String(idx)];
+
+      if (livroId && LIVROS[livroId]) {
+        // Tem livro aqui → desenha o livro detalhado
+        const el = criarLivroNaEstante(livroId, idx);
+        fileira.appendChild(el);
+      } else {
+        // Espaço vazio → slot clicável
+        const slot = document.createElement('div');
+        slot.className = 'bib-slot' + (temDisponiveis ? ' tem-livro' : '');
+        slot.dataset.idx = idx;
+        slot.onclick = () => abrirEscolhaLivro(idx);
+        fileira.appendChild(slot);
+      }
+    }
+  });
+}
+
+/* Cria o elemento visual do livro (com lombada, título, autor) */
+function criarLivroNaEstante(livroId, idx) {
+  const L = LIVROS[livroId];
+  const el = document.createElement('div');
+  el.className = 'bib-livro raridade-' + (L.raridade || 'comum');
+  el.dataset.idx = idx;
+  el.dataset.livro = livroId;
+  el.style.background = `linear-gradient(135deg,
+    ${L.cor} 0%,
+    ${ajustarCor(L.cor, -20)} 60%,
+    ${L.cor} 100%)`;
+  el.style.setProperty('--bib-cor2', L.cor2 || '#d4af37');
+
+  // Texto (título + autor)
+  const txt = document.createElement('div');
+  txt.className = 'bib-livro-txt';
+  txt.textContent = L.nome;
+  el.appendChild(txt);
+
+  const autor = document.createElement('div');
+  autor.className = 'bib-livro-autor';
+  autor.textContent = L.autor;
+  el.appendChild(autor);
+
+  el.onclick = (e) => {
+    e.stopPropagation();
+    abrirMenuLivro(livroId, idx);
+  };
+
+  return el;
+}
+
+/* Escurece/clareia uma cor hex */
+function ajustarCor(hex, delta) {
+  const h = hex.replace('#', '');
+  const r = Math.max(0, Math.min(255, parseInt(h.slice(0, 2), 16) + delta));
+  const g = Math.max(0, Math.min(255, parseInt(h.slice(2, 4), 16) + delta));
+  const b = Math.max(0, Math.min(255, parseInt(h.slice(4, 6), 16) + delta));
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+/* ---------- ESCOLHER LIVRO PRA COLOCAR NO SLOT ---------- */
+function abrirEscolhaLivro(idx) {
+  // Fecha se já tiver aberto
+  const old = document.getElementById('bib-escolha');
+  if (old) old.remove();
+
+  const comprados = S.livrosComprados || [];
+  const estante = S.estante || {};
+  const naEstante = new Set(Object.values(estante));
+  const disponiveis = comprados.filter(id => !naEstante.has(id));
+
+  const modal = document.createElement('div');
+  modal.id = 'bib-escolha';
+
+  let html = `
+    <div id="bib-escolha-card">
+      <h3>📚 Colocar livro</h3>
+      <p>Escolha um livro pra colocar aqui</p>
+  `;
+
+  if (disponiveis.length === 0) {
+    html += `
+      <div class="bib-escolha-vazio">
+        Você ainda não tem livros<br>fora da estante! 🛍️<br><br>
+        Compre novos na <b>Loja</b>.
+      </div>
+    `;
+  } else {
+    disponiveis.forEach(id => {
+      const L = LIVROS[id];
+      if (!L) return;
+      html += `
+        <div class="bib-escolha-item" data-id="${id}">
+          <div class="bib-escolha-mini" style="background:linear-gradient(135deg, ${L.cor} 0%, ${ajustarCor(L.cor, -20)} 100%);"></div>
+          <div class="bib-escolha-info">
+            <div class="bib-escolha-nome">${L.nome}</div>
+            <div class="bib-escolha-autor">${L.autor}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  html += `
+      <button id="bib-escolha-cancelar">Cancelar</button>
+    </div>
+  `;
+  modal.innerHTML = html;
+  document.body.appendChild(modal);
+
+  // Handlers
+  modal.querySelectorAll('.bib-escolha-item').forEach(el => {
+    el.onclick = () => {
+      const livroId = el.dataset.id;
+      if (!S.estante) S.estante = {};
+      S.estante[String(idx)] = livroId;
+      save();
+      SOM.melodia([N.DO, N.MI, N.SOL], 0.08, 'sine', 0.1);
+      modal.remove();
+      // Redesenha a estante
+      const bib = document.getElementById('biblioteca');
+      if (bib) desenharEstante(bib);
+    };
+  });
+
+  document.getElementById('bib-escolha-cancelar').onclick = () => modal.remove();
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
+
+/* ---------- MENU DO LIVRO (tirar da estante) ---------- */
+function abrirMenuLivro(livroId, idx) {
+  const old = document.getElementById('bib-menu');
+  if (old) old.remove();
+
+  const L = LIVROS[livroId];
+  if (!L) return;
+
+  const modal = document.createElement('div');
+  modal.id = 'bib-menu';
+  modal.innerHTML = `
+    <div id="bib-menu-card">
+      <h3>${L.nome}</h3>
+      <p>${L.autor}</p>
+      <button id="bib-menu-tirar" style="background:#f5c8c8;color:#8b3a3a;">🗑️ Tirar da estante</button>
+      <button id="bib-menu-cancelar" style="background:#e8e0e8;color:#5d4f9e;">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('bib-menu-tirar').onclick = () => {
+    if (!S.estante) S.estante = {};
+    delete S.estante[String(idx)];
+    save();
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+    modal.remove();
+    const bib = document.getElementById('biblioteca');
+    if (bib) desenharEstante(bib);
+  };
+
+  document.getElementById('bib-menu-cancelar').onclick = () => modal.remove();
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+}
+
 /* ============ BIBLIOTECA (etapa 1: só a tela) ============ */
 function abrirBiblioteca() {
   // Fecha painel se estiver aberto
@@ -3454,9 +3639,13 @@ function abrirBiblioteca() {
     <div class="bib-quadro q1">🌙</div>
     <div class="bib-quadro q2">🌸</div>
 
-    <!-- ESTANTE -->
+        <!-- ESTANTE -->
     <div id="bib-estante">
       <div id="bib-estante-fundo"></div>
+      <div class="bib-fileira f1"></div>
+      <div class="bib-fileira f2"></div>
+      <div class="bib-fileira f3"></div>
+      <div class="bib-fileira f4"></div>
       <div class="bib-prateleira p1"></div>
       <div class="bib-prateleira p2"></div>
       <div class="bib-prateleira p3"></div>
@@ -3479,6 +3668,10 @@ function abrirBiblioteca() {
   document.getElementById('bib-sair').onclick = () => {
     bib.remove();
   };
+
+  
+  // Desenha as fileiras de espaços/livros
+  desenharEstante(bib);
 
   document.getElementById('bib-loja').onclick = () => {
     // Por enquanto só avisa (a loja vem na Etapa 2)
