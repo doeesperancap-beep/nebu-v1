@@ -1368,3 +1368,345 @@ body[data-m=dizzy] .eye {
   border-radius: 50% 50% 40% 40%;
   box-shadow: 0 4px 10px rgba(0,0,0,.2);
 }
+
+
+/* ============================================================
+   ESTANTE — espaços clicáveis + livros detalhados
+   ============================================================ */
+
+/* Container dos espaços de cada prateleira */
+.bib-fileira {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 0 4px;
+  z-index: 4;
+  height: 18%;        /* altura útil entre prateleiras */
+}
+
+/* Fileiras ficam logo ACIMA das prateleiras (p1..p4) */
+.bib-fileira.f1 { top: 4%;  }
+.bib-fileira.f2 { top: 24%; }
+.bib-fileira.f3 { top: 44%; }
+.bib-fileira.f4 { top: 64%; }
+
+/* ---------- ESPAÇO VAZIO (slot) ---------- */
+.bib-slot {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  transition: background .2s, transform .15s;
+}
+
+/* Fantasminha quando você tem livro pra colocar */
+.bib-slot.tem-livro::after {
+  content: "";
+  position: absolute;
+  inset: 20% 30%;
+  border: 2px dashed rgba(255, 255, 255, .5);
+  border-radius: 4px;
+  animation: slotPulsa 1.6s ease-in-out infinite;
+}
+
+.bib-slot.tem-livro:hover,
+.bib-slot.tem-livro:active {
+  background: rgba(255, 255, 255, .12);
+  transform: scale(1.05);
+}
+
+@keyframes slotPulsa {
+  0%, 100% { opacity: .3; }
+  50%      { opacity: .9; }
+}
+
+/* ---------- LIVRO NA ESTANTE ---------- */
+.bib-livro {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px 2px 2px 3px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    -2px 0 4px rgba(0, 0, 0, .35),           /* sombra lateral esquerda */
+    2px 0 4px rgba(0, 0, 0, .15),            /* sombra lateral direita */
+    inset 2px 0 3px rgba(255, 255, 255, .15); /* brilho da lombada */
+  transition: transform .15s, filter .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bib-livro:active {
+  transform: translateY(-4px) scale(1.03);
+  filter: brightness(1.15);
+}
+
+/* Lombada (faixa escura na lateral esquerda) */
+.bib-livro::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 18%;
+  background: linear-gradient(90deg,
+    rgba(0, 0, 0, .45) 0%,
+    rgba(0, 0, 0, .15) 60%,
+    transparent 100%);
+  pointer-events: none;
+}
+
+/* Detalhe dourado embaixo da lombada */
+.bib-livro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 18%;
+  height: 12%;
+  background: linear-gradient(90deg,
+    var(--bib-cor2, #d4af37) 0%,
+    transparent 100%);
+  opacity: .9;
+  pointer-events: none;
+}
+
+/* Texto do livro (título + autor) — vertical, lendo de baixo pra cima */
+.bib-livro-txt {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: #fff;
+  font-size: clamp(8px, 1.8vw, 11px);
+  font-weight: 700;
+  font-family: Georgia, serif;
+  letter-spacing: .4px;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, .6),
+    0 0 3px rgba(0, 0, 0, .4);
+  padding: 6px 0;
+  max-height: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Autor pequenininho embaixo (não aparece se o livro for muito estreito) */
+.bib-livro-autor {
+  position: absolute;
+  bottom: 4%;
+  left: 22%;
+  right: 4%;
+  font-size: clamp(6px, 1.2vw, 8px);
+  color: rgba(255, 255, 255, .7);
+  font-weight: 600;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .7);
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Estrelinha dourada se for raro (só aparece visualmente se quiser) */
+.bib-livro.raridade-raro .bib-livro-txt::before {
+  content: "✦ ";
+  color: #f5d76e;
+  font-size: .85em;
+}
+.bib-livro.raridade-lendario .bib-livro-txt::before {
+  content: "★ ";
+  color: #ffcc33;
+  font-size: .9em;
+}
+
+/* ---------- PREVIEW DO LIVRO (quando tá escolhendo onde colocar) ---------- */
+.bib-livro.preview {
+  opacity: .55;
+  animation: slotPulsa 1.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ---------- MODAL DE ESCOLHA (lista do inventário) ---------- */
+#bib-escolha {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn .25s;
+}
+
+#bib-escolha-card {
+  background: linear-gradient(180deg, #f5ede0 0%, #e8d8c8 100%);
+  border-radius: 20px;
+  padding: 20px;
+  width: 100%;
+  max-width: 340px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  border: 4px solid #d8c4ec;
+}
+
+#bib-escolha-card h3 {
+  margin: 0 0 4px;
+  font-size: 17px;
+  color: #5d4f9e;
+  text-align: center;
+  font-weight: 700;
+}
+
+#bib-escolha-card p {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #5d4f9e;
+  text-align: center;
+  opacity: .7;
+}
+
+.bib-escolha-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 2px solid #e8d5f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+
+.bib-escolha-item:active {
+  transform: scale(.97);
+}
+
+.bib-escolha-item:hover {
+  border-color: #b8a0cc;
+}
+
+.bib-escolha-mini {
+  width: 26px;
+  height: 34px;
+  border-radius: 2px;
+  box-shadow:
+    -1px 0 3px rgba(0, 0, 0, .3),
+    inset 2px 0 2px rgba(255, 255, 255, .15);
+  position: relative;
+  flex-shrink: 0;
+}
+.bib-escolha-mini::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 22%;
+  background: linear-gradient(90deg,
+    rgba(0, 0, 0, .45) 0%,
+    transparent 100%);
+}
+
+.bib-escolha-info {
+  flex: 1;
+  min-width: 0;
+}
+.bib-escolha-nome {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5d4f9e;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+.bib-escolha-autor {
+  font-size: 10px;
+  color: #5d4f9e;
+  opacity: .6;
+}
+
+.bib-escolha-vazio {
+  text-align: center;
+  padding: 20px 10px;
+  font-size: 13px;
+  color: #5d4f9e;
+  opacity: .7;
+  line-height: 1.5;
+}
+
+#bib-escolha-cancelar {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  background: #e8e0e8;
+  color: #5d4f9e;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ---------- MENU DE AÇÃO DO LIVRO (tirar da estante) ---------- */
+#bib-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn .25s;
+}
+
+#bib-menu-card {
+  background: linear-gradient(180deg, #f5ede0 0%, #e8d8c8 100%);
+  border-radius: 20px;
+  padding: 20px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  border: 4px solid #d8c4ec;
+}
+
+#bib-menu-card h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: #5d4f9e;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+#bib-menu-card p {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #5d4f9e;
+  opacity: .65;
+}
+
+#bib-menu-card button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
