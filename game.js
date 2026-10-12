@@ -1213,6 +1213,59 @@ function foodTray() {
   );
 }
 
+
+
+
+/* ============ CONFIGURAÇÕES DA BIBLIOTECA ============ */
+/* Mude à vontade! Os textos vão aparecer no jogo. */
+const BIB_CONFIG = {
+  // ---------- LER LIVROS ----------
+  cooldownMin: 30,              // minutos pra reler o mesmo livro
+  chanceGostar: 50,             // % de chance de gostar (50 = meio a meio)
+
+  // Recompensas
+  humorGostou: 8,               // +humor se gostar
+  humorNaoGostou: -4,           // humor se não gostar
+  moedasGostou: 5,              // moedas ganhas se gostar
+
+  // ---------- TEXTOS ----------
+  falaGostou: [
+    'Que livro bom! 📖💗',
+    'Adorei essa história! ✨',
+    'Não conseguia parar de ler! 🥰',
+    'Que final maravilhoso! 😍',
+    'Vou recomendar pra todo mundo! 💫'
+  ],
+  falaNaoGostou: [
+    'Hmm... não curti muito 😕',
+    'Achei meio chato... 😴',
+    'Não entendi nada 🤔',
+    'Esperava mais... 😑',
+    'Que tédio 😒'
+  ],
+  falaJaLeuGostou: [
+    'Esse eu já li e amei! 💗',
+    'Ah, esse é meu favorito! 📖✨',
+    'Já li de novo, continua incrível! 🥰'
+  ],
+  falaJaLeuNaoGostou: [
+    'Já li esse... não gostei 😕',
+    'Ah, esse de novo? Não curto 😑',
+    'Já sei que não gosto desse 😒'
+  ],
+  falaAindaNao: [
+    'Já li faz pouco tempo... ⏳',
+    'Calma, deixa eu digerir a história 😌',
+    'Daqui a pouco eu leio de novo 📚'
+  ],
+
+  // ---------- AVISO DE ATUALIZAÇÃO ----------
+  moedasAtualizacao: 120,       // recompensa por atualizar
+
+  avisoTexto: '✨ Nébula atualizada! Toque para ganhar {m} 🪙',
+  avisoTextoJaPego: '✨ Nébula atualizada! Toque para recarregar'
+};
+
 /* ============ CATÁLOGO DE LIVROS (Biblioteca) ============ */
 /* Cada livro: id, nome, autor, preco, cor (capa), cor2 (detalhe), raridade */
 const LIVROS = {
@@ -3572,15 +3625,42 @@ function abrirMenuLivro(livroId, idx) {
 
   const modal = document.createElement('div');
   modal.id = 'bib-menu';
+   // Descobre o estado atual do livro (lembra se já leu)
+  S.livrosLidos = S.livrosLidos || {};
+  const info = S.livrosLidos[livroId];   // { gostou: true/false, ultimaLeitura: timestamp }
+  const agora = Date.now();
+  const cooldownMs = BIB_CONFIG.cooldownMin * 60 * 1000;
+  const podeLer = !info || (agora - info.ultimaLeitura >= cooldownMs);
+
+  // Status do livro pra mostrar no menu
+  let statusTxt = '';
+  if (!info) {
+    statusTxt = '<p style="font-size:11px;opacity:.5;margin:4px 0 14px;">📖 Ainda não leu</p>';
+  } else if (!podeLer) {
+    const faltaMin = Math.ceil((cooldownMs - (agora - info.ultimaLeitura)) / 60000);
+    statusTxt = `<p style="font-size:11px;opacity:.5;margin:4px 0 14px;">⏳ Pode reler em ${faltaMin} min</p>`;
+  } else {
+    statusTxt = `<p style="font-size:11px;opacity:.5;margin:4px 0 14px;">${info.gostou ? '💗 Ela gostou' : '😕 Ela não gostou'}</p>`;
+  }
+
   modal.innerHTML = `
     <div id="bib-menu-card">
       <h3>${L.nome}</h3>
       <p>${L.autor}</p>
+      ${statusTxt}
+      <button id="bib-menu-ler" style="background:#d8c4ec;color:#5d4f9e;">📖 Ler</button>
       <button id="bib-menu-tirar" style="background:#f5c8c8;color:#8b3a3a;">🗑️ Tirar da estante</button>
       <button id="bib-menu-cancelar" style="background:#e8e0e8;color:#5d4f9e;">Cancelar</button>
     </div>
   `;
   document.body.appendChild(modal);
+
+  
+  // ---------- LER LIVRO ----------
+  document.getElementById('bib-menu-ler').onclick = () => {
+    modal.remove();
+    lerLivro(livroId);
+  };
 
   document.getElementById('bib-menu-tirar').onclick = () => {
     if (!S.estante) S.estante = {};
@@ -3596,6 +3676,78 @@ function abrirMenuLivro(livroId, idx) {
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 }
 
+
+/* ============ LER LIVRO ============ */
+function lerLivro(livroId) {
+  const L = LIVROS[livroId];
+  if (!L) return;
+
+  S.livrosLidos = S.livrosLidos || {};
+  const info = S.livrosLidos[livroId];
+  const agora = Date.now();
+  const cooldownMs = BIB_CONFIG.cooldownMin * 60 * 1000;
+
+  // ---------- COOLDOWN ----------
+  if (info && (agora - info.ultimaLeitura < cooldownMs)) {
+    say(rnd(BIB_CONFIG.falaAindaNao), 3000);
+    set('sleepy', 2500);
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.08);
+    return;
+  }
+
+  // ---------- JÁ LEU ANTES ----------
+  if (info) {
+    const falas = info.gostou ? BIB_CONFIG.falaJaLeuGostou : BIB_CONFIG.falaJaLeuNaoGostou;
+    say(rnd(falas), 3500);
+    set(info.gostou ? 'carinho' : 'sad', 2800);
+
+    // Aplica efeito de novo (mas menor)
+    if (info.gostou) {
+      S.humor = clamp(S.humor + Math.round(BIB_CONFIG.humorGostou * 0.5));
+      ganharMoedas(Math.round(BIB_CONFIG.moedasGostou * 0.5));
+    } else {
+      S.humor = clamp(S.humor + Math.round(BIB_CONFIG.humorNaoGostou * 0.5));
+    }
+    info.ultimaLeitura = agora;
+    save();
+    return;
+  }
+
+  // ---------- PRIMEIRA VEZ LENDO ----------
+  const gostou = Math.random() * 100 < BIB_CONFIG.chanceGostar;
+  S.livrosLidos[livroId] = {
+    gostou: gostou,
+    ultimaLeitura: agora
+  };
+
+  // Animação de leitura (olhinhos se movem devagar)
+  set('curious', 3500, '📖 ...');
+
+  // Aplica efeito
+  if (gostou) {
+    S.humor = clamp(S.humor + BIB_CONFIG.humorGostou);
+    ganharMoedas(BIB_CONFIG.moedasGostou);
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.12);
+    vib([30, 40, 30]);
+
+    // Fala depois de um tempo (ela "leu")
+    setTimeout(() => {
+      say(rnd(BIB_CONFIG.falaGostou), 3500);
+      set('carinho', 3000);
+      setTimeout(() => heart(innerWidth / 2, innerHeight / 2), 200);
+    }, 3600);
+  } else {
+    S.humor = clamp(S.humor + BIB_CONFIG.humorNaoGostou);
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.1);
+
+    setTimeout(() => {
+      say(rnd(BIB_CONFIG.falaNaoGostou), 3500);
+      set('sad', 3000);
+    }, 3600);
+  }
+
+  save();
+}
 
 /* ============ LOJA DE LIVROS ============ */
 function abrirLojaLivros() {
@@ -4233,13 +4385,43 @@ document.addEventListener('visibilitychange', () => {
 })();
 
 function mostrarAviso(nova, key) {
+  // Chave pra saber se essa versão já deu prêmio
+  const KEY_PREMIO = 'nebula-premio-versao';
+  const versaoPremiada = Number(localStorage.getItem(KEY_PREMIO) || 0);
+  const jaPegou = versaoPremiada >= nova;
+
   const aviso = document.createElement('div');
   aviso.id = 'aviso-atualizacao';
-  aviso.textContent = '✨ Nébula atualizada! Toque para recarregar';
-  aviso.onclick = () => {
-    localStorage.setItem(key, nova);
-    // Force reload, ignorando cache
-    location.reload();
-  };
+
+  if (jaPegou) {
+    // Já pegou o prêmio dessa versão — só recarrega
+    aviso.textContent = BIB_CONFIG.avisoTextoJaPego;
+    aviso.onclick = () => {
+      localStorage.setItem(key, nova);
+      location.reload();
+    };
+  } else {
+    // Ainda não pegou — mostra com prêmio
+    aviso.textContent = BIB_CONFIG.avisoTexto.replace('{m}', BIB_CONFIG.moedasAtualizacao);
+    aviso.onclick = () => {
+      // Dá o prêmio UMA VEZ
+      ganharMoedas(BIB_CONFIG.moedasAtualizacao);
+
+      // Marca como premiado
+      localStorage.setItem(KEY_PREMIO, nova);
+      localStorage.setItem(key, nova);
+
+      // Feedback visual
+      aviso.textContent = `🎉 +${BIB_CONFIG.moedasAtualizacao} moedas!`;
+      aviso.style.background = '#b8dfd0';
+      aviso.style.color = '#2e6b52';
+
+      // Recarrega depois de 1s
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    };
+  }
+
   document.body.appendChild(aviso);
 }
