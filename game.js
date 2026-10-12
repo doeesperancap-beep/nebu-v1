@@ -3221,6 +3221,82 @@ function abrirDoceria() {
   };
 }
 
+
+/* ============ BIBLIOTECA (etapa 1: só a tela) ============ */
+function abrirBiblioteca() {
+  // Fecha painel se estiver aberto
+  P.classList.remove('on');
+
+  // Remove versão antiga se existir
+  let bib = document.getElementById('biblioteca');
+  if (bib) bib.remove();
+
+  // Cria a tela
+  bib = document.createElement('div');
+  bib.id = 'biblioteca';
+  bib.innerHTML = `
+    <!-- TOPO -->
+    <div id="bib-topo">
+      <button id="bib-sair" class="bib-btn-topo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 18l-6-6 6-6"/>
+          <path d="M21 12H9"/>
+        </svg>
+        <span>Sair</span>
+      </button>
+
+      <button id="bib-loja" class="bib-btn-topo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span>Loja</span>
+      </button>
+    </div>
+
+    <!-- PAREDE -->
+    <div id="bib-parede"></div>
+
+    <!-- JANELA -->
+    <div id="bib-janela"></div>
+
+    <!-- QUADROS -->
+    <div class="bib-quadro q1">🌙</div>
+    <div class="bib-quadro q2">🌸</div>
+
+    <!-- ESTANTE -->
+    <div id="bib-estante">
+      <div id="bib-estante-fundo"></div>
+      <div class="bib-prateleira p1"></div>
+      <div class="bib-prateleira p2"></div>
+      <div class="bib-prateleira p3"></div>
+      <div class="bib-prateleira p4"></div>
+      <div id="bib-base"></div>
+    </div>
+
+    <!-- CHÃO -->
+    <div id="bib-chao"></div>
+
+    <!-- TAPETE -->
+    <div id="bib-tapete"></div>
+
+    <!-- PLANTA -->
+    <div id="bib-planta"></div>
+  `;
+  document.body.appendChild(bib);
+
+  // Handlers dos botões
+  document.getElementById('bib-sair').onclick = () => {
+    bib.remove();
+  };
+
+  document.getElementById('bib-loja').onclick = () => {
+    // Por enquanto só avisa (a loja vem na Etapa 2)
+    alert('🛍️ Loja em breve! (Etapa 2)');
+  };
+}
+
 /* ============ HANDLER GLOBAL DE CLIQUES ============ */
 P.onclick = e => {
   const b = e.target.closest('button');
@@ -3244,7 +3320,7 @@ P.onclick = e => {
   else if (d.x === 'loja')        { P.classList.remove('on'); painelLoja(); }
   else if (d.x === 'spa')         { P.classList.remove('on'); painelSpa(); }
   else if (d.x === 'clinica')     { P.classList.remove('on'); painelClinica(); }
-  else if (d.x === 'biblioteca')  { P.classList.remove('on'); painelBiblioteca(); }
+  else if (d.x === 'biblioteca')  { P.classList.remove('on'); abrirBiblioteca(); }
   else if (d.x === 'jogos')       { P.classList.remove('on'); painelJogos(); }
   else if (d.x === 'doceria')     { P.classList.remove('on'); abrirDoceria(); }
   else if (d.x === 'boutique')    { P.classList.remove('on'); painelBoutique(); }
