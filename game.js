@@ -3596,6 +3596,168 @@ function abrirMenuLivro(livroId, idx) {
   modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 }
 
+
+/* ============ LOJA DE LIVROS ============ */
+function abrirLojaLivros() {
+  // Fecha se já tá aberta
+  const old = document.getElementById('bib-loja-painel');
+  if (old) old.remove();
+
+  const painel = document.createElement('div');
+  painel.id = 'bib-loja-painel';
+  document.body.appendChild(painel);
+
+  renderizarLojaLivros();
+}
+
+function renderizarLojaLivros() {
+  const painel = document.getElementById('bib-loja-painel');
+  if (!painel) return;
+
+  const comprados = S.livrosComprados || [];
+  const total = Object.keys(LIVROS).length;
+  const temTodos = comprados.length >= total;
+
+  let html = `
+    <div id="bib-loja-card">
+      <div id="bib-loja-topo">
+        <h2>🛍️ Loja de Livros</h2>
+        <div id="bib-loja-moedas">🪙 ${S.moedas || 0}</div>
+      </div>
+
+      <div id="bib-loja-lista">
+  `;
+
+  // Ordena alfabeticamente por nome
+  const ordenados = Object.entries(LIVROS).sort((a, b) =>
+    a[1].nome.localeCompare(b[1].nome, 'pt-BR')
+  );
+
+  ordenados.forEach(([id, L]) => {
+    const jaTem = comprados.includes(id);
+    const podeComprar = (S.moedas || 0) >= L.preco;
+    const classes = [
+      'bib-loja-item',
+      jaTem ? 'comprado' : '',
+      (!jaTem && !podeComprar) ? 'sem-moedas' : ''
+    ].filter(Boolean).join(' ');
+
+    // Gradiente da capa
+    const cor1 = L.cor;
+    const cor2 = ajustarCor(L.cor, -25);
+
+    html += `
+      <div class="${classes}" data-id="${id}">
+        <div class="bib-loja-capa"
+             style="background:linear-gradient(135deg, ${cor1} 0%, ${cor2} 60%, ${cor1} 100%);
+                    --bib-cor2:${L.cor2 || '#d4af37'};">
+        </div>
+        <div class="bib-loja-info">
+          <div class="bib-loja-nome">${L.nome}</div>
+          <div class="bib-loja-autor">${L.autor}</div>
+          ${jaTem
+            ? `<div class="bib-loja-preco comprado">✓ COMPRADO</div>`
+            : `<div class="bib-loja-preco">🪙 ${L.preco}</div>`
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
+
+      <div id="bib-loja-rodape">
+        <div id="bib-loja-progresso">
+          📚 ${comprados.length} / ${total} livros na coleção
+          ${temTodos ? ' — COMPLETA! 🎉' : ''}
+        </div>
+        <button id="bib-loja-fechar">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  painel.innerHTML = html;
+
+  // Handlers
+  setTimeout(() => {
+    // Clicar em cada livro
+    painel.querySelectorAll('.bib-loja-item').forEach(el => {
+      el.onclick = () => {
+        const id = el.dataset.id;
+        comprarLivro(id);
+      };
+    });
+
+    // Fechar
+    const btnFechar = document.getElementById('bib-loja-fechar');
+    if (btnFechar) btnFechar.onclick = () => {
+      painel.remove();
+      // Redesenha a estante (pra mostrar o fantasminha se tiver livro novo)
+      const bib = document.getElementById('biblioteca');
+      if (bib) desenharEstante(bib);
+    };
+
+    // Clicar fora fecha
+    painel.onclick = (e) => {
+      if (e.target === painel) {
+        painel.remove();
+        const bib = document.getElementById('biblioteca');
+        if (bib) desenharEstante(bib);
+      }
+    };
+  }, 50);
+}
+
+/* ---------- COMPRAR LIVRO ---------- */
+function comprarLivro(id) {
+  const L = LIVROS[id];
+  if (!L) return;
+
+  const comprados = S.livrosComprados || [];
+
+  // Já tem?
+  if (comprados.includes(id)) {
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1);
+    toastCompra('Você já tem esse livro! 📚');
+    return;
+  }
+
+  // Sem moedas?
+  if ((S.moedas || 0) < L.preco) {
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.12);
+    toastCompra('Moedas insuficientes... 😢');
+    return;
+  }
+
+  // Compra!
+  S.moedas -= L.preco;
+  comprados.push(id);
+  S.livrosComprados = comprados;
+  save();
+
+  // Som + vibração
+  SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.08, 'sine', 0.12);
+  vib([30, 40, 30]);
+  toastCompra(`📚 ${L.nome} comprado!`);
+
+  // Redesenha a loja (atualiza os contadores)
+  renderizarLojaLivros();
+
+  // Atualiza a estante de fundo também (fantasminha)
+  const bib = document.getElementById('biblioteca');
+  if (bib) desenharEstante(bib);
+}
+
+/* ---------- TOAST DE COMPRA ---------- */
+function toastCompra(txt) {
+  const el = document.createElement('div');
+  el.className = 'bib-toast-compra';
+  el.textContent = txt;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1600);
+}
+
 /* ============ BIBLIOTECA (etapa 1: só a tela) ============ */
 function abrirBiblioteca() {
   // Fecha painel se estiver aberto
@@ -3673,9 +3835,8 @@ function abrirBiblioteca() {
   // Desenha as fileiras de espaços/livros
   desenharEstante(bib);
 
-  document.getElementById('bib-loja').onclick = () => {
-    // Por enquanto só avisa (a loja vem na Etapa 2)
-    alert('🛍️ Loja em breve! (Etapa 2)');
+    document.getElementById('bib-loja').onclick = () => {
+    abrirLojaLivros();
   };
 }
 
