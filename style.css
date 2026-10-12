@@ -1710,3 +1710,232 @@ body[data-m=dizzy] .eye {
   cursor: pointer;
   font-family: inherit;
 }
+
+
+/* ============================================================
+   LOJA DE LIVROS (painel por cima da biblioteca)
+   ============================================================ */
+
+#bib-loja-painel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .65);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn .25s;
+}
+
+#bib-loja-card {
+  background: linear-gradient(180deg, #f5ede0 0%, #e8d8c8 100%);
+  border-radius: 22px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+  border: 4px solid #d8c4ec;
+  overflow: hidden;
+}
+
+/* ---------- TOPO da loja ---------- */
+#bib-loja-topo {
+  padding: 16px 20px 12px;
+  background: linear-gradient(180deg, #e8d5f0 0%, #d8c4ec 100%);
+  border-bottom: 3px solid #c8b0d8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+#bib-loja-topo h2 {
+  margin: 0;
+  font-size: 19px;
+  color: #5d4f9e;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#bib-loja-moedas {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5d4f9e;
+  background: rgba(255, 255, 255, .6);
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+/* ---------- LISTA de livros ---------- */
+#bib-loja-lista {
+  padding: 14px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Card de cada livro */
+.bib-loja-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 3px solid #e8d5f0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform .15s, border-color .15s, background .2s;
+  box-shadow: 0 3px 10px rgba(93, 79, 158, .08);
+}
+
+.bib-loja-item:active {
+  transform: scale(.97);
+}
+
+.bib-loja-item:hover {
+  border-color: #b8a0cc;
+}
+
+/* Livro comprado */
+.bib-loja-item.comprado {
+  background: #f0f8f2;
+  border-color: #b8dfd0;
+  cursor: default;
+}
+.bib-loja-item.comprado:active { transform: none; }
+
+/* Sem moedas */
+.bib-loja-item.sem-moedas {
+  opacity: .55;
+}
+
+/* Capa do livro (miniatura) */
+.bib-loja-capa {
+  width: 44px;
+  height: 60px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow:
+    -2px 0 5px rgba(0, 0, 0, .35),
+    2px 0 5px rgba(0, 0, 0, .15),
+    inset 3px 0 4px rgba(255, 255, 255, .2);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Lombada escura */
+.bib-loja-capa::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 22%;
+  background: linear-gradient(90deg,
+    rgba(0, 0, 0, .5) 0%,
+    rgba(0, 0, 0, .15) 60%,
+    transparent 100%);
+}
+
+/* Detalhe dourado */
+.bib-loja-capa::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 22%;
+  height: 15%;
+  background: linear-gradient(90deg,
+    var(--bib-cor2, #d4af37) 0%,
+    transparent 100%);
+  opacity: .9;
+}
+
+/* Info do livro */
+.bib-loja-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bib-loja-nome {
+  font-size: 13px;
+  font-weight: 700;
+  color: #5d4f9e;
+  line-height: 1.25;
+  margin-bottom: 3px;
+  word-wrap: break-word;
+}
+
+.bib-loja-autor {
+  font-size: 11px;
+  color: #5d4f9e;
+  opacity: .6;
+  margin-bottom: 4px;
+}
+
+.bib-loja-preco {
+  font-size: 13px;
+  font-weight: 800;
+  color: #2e6b52;
+}
+
+.bib-loja-preco.comprado {
+  color: #2e6b52;
+  font-size: 12px;
+}
+
+/* ---------- RODAPÉ ---------- */
+#bib-loja-rodape {
+  padding: 12px 16px;
+  background: #e8d5f0;
+  border-top: 3px solid #c8b0d8;
+  flex-shrink: 0;
+}
+
+#bib-loja-progresso {
+  font-size: 12px;
+  color: #5d4f9e;
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+#bib-loja-fechar {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  background: #d8c4ec;
+  color: #5d4f9e;
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform .15s;
+}
+#bib-loja-fechar:active { transform: scale(.97); }
+
+/* ---------- TOAST de compra ---------- */
+.bib-toast-compra {
+  position: fixed;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d8c4ec;
+  color: #5d4f9e;
+  padding: 12px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 6px 24px rgba(93, 79, 158, .4);
+  animation: moedaSobe 1.6s ease-out forwards;
+  max-width: 80vw;
+  text-align: center;
+}
