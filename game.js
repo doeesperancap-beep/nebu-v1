@@ -4340,10 +4340,12 @@ function abrirCasa() {
     return;
   }
 
-  // Já tem casa → abre o interior
+   // Já tem casa → abre o interior
   casa.innerHTML = renderInteriorCasa();
   document.body.appendChild(casa);
   ligarBotoesCasa(casa);
+
+  // Botões de navegação já ficam dentro do HTML
 }
 
 /* ---------- TELA: COMPRAR CASA ---------- */
@@ -4441,13 +4443,136 @@ function renderInteriorCasa() {
       <div id="casa-luz"></div>
       <div id="casa-chao"></div>
       <div id="casa-tapete"></div>
+    </div>
 
-      <div class="casa-planta top-esq">🌿</div>
-      <div class="casa-planta top-dir">🌱</div>
-      <div class="casa-planta esq">🪴</div>
-      <div class="casa-planta dir">🌳</div>
+    <!-- Botões de navegação -->
+    <div id="casa-nav">
+      <button class="casa-nav-btn" data-ir="rua">
+        🚪 Sair pra rua
+      </button>
+      <button class="casa-nav-btn" data-ir="varanda">
+        🌿 Ir pro quintal
+      </button>
     </div>
   `;
+}
+
+/* ---------- TELA: FACHADA (lado de fora) ---------- */
+function renderFachadaCasa() {
+  return `
+    <button id="casa-sair" class="bib-btn-topo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+        <path d="M21 12H9"/>
+      </svg>
+      <span>Sair</span>
+    </button>
+
+    <div id="casa-fachada">
+      <div id="casa-ceu"></div>
+      <div id="casa-sol"></div>
+      <div id="casa-nuvens">☁️ ☁️</div>
+
+      <div id="casa-predio">
+        <div id="casa-telhado"></div>
+        <div id="casa-corpo">
+          <div id="casa-porta-externa"></div>
+          <div id="casa-janela-externa esq"></div>
+          <div id="casa-janela-externa dir"></div>
+        </div>
+      </div>
+
+      <div id="casa-rua"></div>
+    </div>
+
+    <div id="casa-nav">
+      <button class="casa-nav-btn" data-ir="interior">
+        🚪 Entrar em casa
+      </button>
+    </div>
+  `;
+}
+
+/* ---------- TELA: VARANDA (quintal) ---------- */
+function renderVarandaCasa() {
+  return `
+    <button id="casa-sair" class="bib-btn-topo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+        <path d="M21 12H9"/>
+      </svg>
+      <span>Sair</span>
+    </button>
+
+    <div id="casa-varanda">
+      <!-- Céu noturno (igual à sua imagem de referência) -->
+      <div id="casa-varanda-ceu"></div>
+
+      <!-- Estrelinhas -->
+      <div id="casa-varanda-estrelas"></div>
+
+      <!-- Cerca de madeira no fundo -->
+      <div id="casa-varanda-cerca"></div>
+
+      <!-- Parede de pedras -->
+      <div id="casa-varanda-pedras"></div>
+
+      <!-- Postes de luz com lâmpadas penduradas -->
+      <div id="casa-varanda-postes">
+        <div class="casa-lampada" style="left:15%"></div>
+        <div class="casa-lampada" style="left:50%"></div>
+        <div class="casa-lampada" style="left:85%"></div>
+      </div>
+
+      <!-- Fio com luzinhas -->
+      <div id="casa-varanda-fio"></div>
+
+      <!-- Grama -->
+      <div id="casa-varanda-grama"></div>
+
+      <!-- Deck de madeira (chão) -->
+      <div id="casa-varanda-deck"></div>
+    </div>
+
+    <div id="casa-nav">
+      <button class="casa-nav-btn" data-ir="interior">
+        🏠 Voltar pra dentro
+      </button>
+    </div>
+  `;
+}
+
+function ligarBotoesCasa(casa) {
+  const sair = casa.querySelector('#casa-sair');
+  if (sair) sair.onclick = () => casa.remove();
+
+  // Navegação entre as telas
+  casa.querySelectorAll('[data-ir]').forEach(btn => {
+    btn.onclick = () => {
+      const destino = btn.dataset.ir;
+      casa.remove();
+      // Pequeno delay pra dar sensação de "entrar/sair"
+      setTimeout(() => {
+        abrirCasaEm(destino);
+      }, 150);
+    };
+  });
+}
+
+/* Abre a casa direto numa tela específica (interior, rua, varanda) */
+function abrirCasaEm(tela) {
+  let casa = document.getElementById('casa');
+  if (casa) casa.remove();
+
+  casa = document.createElement('div');
+  casa.id = 'casa';
+
+  if (tela === 'rua')          casa.innerHTML = renderFachadaCasa();
+  else if (tela === 'varanda') casa.innerHTML = renderVarandaCasa();
+  else                         casa.innerHTML = renderInteriorCasa();
+
+  document.body.appendChild(casa);
+  ligarBotoesCasa(casa);
 }
 
 function ligarBotoesCasa(casa) {
