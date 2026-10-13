@@ -4304,6 +4304,156 @@ $('bBrincar').onclick = () => panel(
 $('bMundo').onclick = mundo;
 $('bXarope').onclick = xarope;
 
+
+/* ============ CASA DA NÉBULA ============ */
+$('bCasa').onclick = abrirCasa;
+
+const CASA_CONFIG = {
+  // Por enquanto só 1 tipo; depois a gente adiciona mais
+  tipos: {
+    single_home: {
+      nome: 'Single Home',
+      desc: 'Uma casinha aconchegante pra começar',
+      preco: 150,
+      tipo: 'pequena'
+    }
+  }
+};
+
+function abrirCasa() {
+  // Fecha painel se estiver aberto
+  P.classList.remove('on');
+
+  // Remove versão antiga se existir
+  let casa = document.getElementById('casa');
+  if (casa) casa.remove();
+
+  // Cria a tela
+  casa = document.createElement('div');
+  casa.id = 'casa';
+
+  // Se ainda não tem casa → mostra tela de comprar
+  if (!S.casa || !S.casa.tipo) {
+    casa.innerHTML = renderComprarCasa();
+    document.body.appendChild(casa);
+    ligarBotoesComprarCasa(casa);
+    return;
+  }
+
+  // Já tem casa → abre o interior
+  casa.innerHTML = renderInteriorCasa();
+  document.body.appendChild(casa);
+  ligarBotoesCasa(casa);
+}
+
+/* ---------- TELA: COMPRAR CASA ---------- */
+function renderComprarCasa() {
+  const tipos = CASA_CONFIG.tipos;
+  const moedas = S.moedas || 0;
+
+  let cards = '';
+  for (const [id, t] of Object.entries(tipos)) {
+    const podeComprar = moedas >= t.preco;
+    cards += `
+      <div class="casa-card">
+        <div class="casa-preview">
+          <div class="casa-porta"></div>
+          <div class="casa-janela-mini"></div>
+          <div class="casa-janela-mini dir"></div>
+        </div>
+        <div class="casa-nome">🏠 ${t.nome}</div>
+        <div class="casa-desc">${t.desc}</div>
+        <div class="casa-preco">🪙 ${t.preco}</div>
+        <button class="casa-btn-comprar" data-casa="${id}" ${podeComprar ? '' : 'disabled'}>
+          ${podeComprar ? '✓ Comprar' : '🪙 Moedas insuficientes'}
+        </button>
+      </div>
+    `;
+  }
+
+  return `
+    <button id="casa-sair" class="bib-btn-topo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+        <path d="M21 12H9"/>
+      </svg>
+      <span>Sair</span>
+    </button>
+
+    <div id="casa-sem-casa">
+      <h1>🏠 Sua Casa</h1>
+      <p class="sub">Você ainda não tem uma casa!<br>Escolha uma pra começar:</p>
+      ${cards}
+      <div class="casa-moedas-info">Você tem: 🪙 ${moedas}</div>
+    </div>
+  `;
+}
+
+function ligarBotoesComprarCasa(casa) {
+  // Sair
+  const sair = casa.querySelector('#casa-sair');
+  if (sair) sair.onclick = () => casa.remove();
+
+  // Comprar
+  casa.querySelectorAll('[data-casa]').forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.dataset.casa;
+      const t = CASA_CONFIG.tipos[id];
+      if (!t) return;
+      if ((S.moedas || 0) < t.preco) return;
+
+      // Compra!
+      S.moedas -= t.preco;
+      S.casa = {
+        tipo: id,
+        compradaEm: Date.now()
+      };
+      save();
+
+      SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.14);
+      vib([30, 40, 30]);
+
+      // Recarrega a tela (agora abre o interior)
+      casa.remove();
+      setTimeout(abrirCasa, 300);
+    };
+  });
+}
+
+/* ---------- TELA: INTERIOR DA CASA ---------- */
+function renderInteriorCasa() {
+  return `
+    <button id="casa-sair" class="bib-btn-topo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+        <path d="M21 12H9"/>
+      </svg>
+      <span>Sair</span>
+    </button>
+
+    <div id="casa-interior">
+      <div id="casa-parede"></div>
+
+      <div id="casa-janela">
+        <div id="casa-janela-caixilho"></div>
+      </div>
+
+      <div id="casa-luz"></div>
+      <div id="casa-chao"></div>
+      <div id="casa-tapete"></div>
+
+      <div class="casa-planta top-esq">🌿</div>
+      <div class="casa-planta top-dir">🌱</div>
+      <div class="casa-planta esq">🪴</div>
+      <div class="casa-planta dir">🌳</div>
+    </div>
+  `;
+}
+
+function ligarBotoesCasa(casa) {
+  const sair = casa.querySelector('#casa-sair');
+  if (sair) sair.onclick = () => casa.remove();
+}
 /* ============ XAROPE (remédio quando doente) ============ */
 function xarope() {
   if (!S.sick || S.sick <= Date.now()) {
