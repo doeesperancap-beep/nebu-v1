@@ -158,7 +158,7 @@ body[data-m=dizzy] .eye {
   transform: translate(-50%, -50%);
   background: #1b1824f2; border-radius: 20px;
   padding: 18px 22px; width: min(78vw, 300px);
-  display: none; z-index: 9;
+  display: none; z-index: 50;
 }
 #estado.on, #panel.on { display: block; }
 #panel { width: min(82vw, 320px); max-height: 80vh; overflow: auto; }
@@ -2525,7 +2525,7 @@ body[data-m=dizzy] .eye {
 }
 
 /* Janelas */
-#casa-janela-externa {
+.casa-janela-externa {
   position: absolute;
   top: 25%;
   width: 22%;
@@ -2535,8 +2535,8 @@ body[data-m=dizzy] .eye {
   border-radius: 4px;
   box-shadow: inset 0 0 8px rgba(255, 255, 255, .5);
 }
-#casa-janela-externa.esq { left: 10%; }
-#casa-janela-externa.dir { right: 10%; }
+.casa-janela-externa.esq { left: 10%; }
+.casa-janela-externa.dir { right: 10%; }
 
 /* Rua/chão */
 #casa-rua {
