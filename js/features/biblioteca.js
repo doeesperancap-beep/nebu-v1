@@ -201,4 +201,94 @@ function lerLivro(livroId) {
     info.ultimaLeitura = agora; save(); return;
   }
 
-  const gostou = Math.random() * 100 < BIB_CONFIG.chanceG
+  const gostou = Math.random() * 100 < BIB_CONFIG.chanceGostar;
+  S.livrosLidos[livroId] = { gostou, ultimaLeitura: agora };
+  set('curious', 3500, '📖 ...');
+
+  if (gostou) {
+    S.humor = clamp(S.humor + BIB_CONFIG.humorGostou);
+    ganharMoedas(BIB_CONFIG.moedasGostou);
+    SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.12, 'sine', 0.12); vib([30, 40, 30]);
+    setTimeout(() => {
+      say(rnd(BIB_CONFIG.falaGostou), 3500); set('carinho', 3000);
+      setTimeout(() => heart(innerWidth / 2, innerHeight / 2), 200);
+    }, 3600);
+  } else {
+    S.humor = clamp(S.humor + BIB_CONFIG.humorNaoGostou);
+    SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.15, 'sawtooth', 0.1);
+    setTimeout(() => { say(rnd(BIB_CONFIG.falaNaoGostou), 3500); set('sad', 3000); }, 3600);
+  }
+  save();
+}
+
+function abrirLojaLivros() {
+  const old = document.getElementById('bib-loja-painel');
+  if (old) old.remove();
+  const painel = document.createElement('div');
+  painel.id = 'bib-loja-painel';
+  document.body.appendChild(painel);
+  renderizarLojaLivros();
+}
+
+function renderizarLojaLivros() {
+  const painel = document.getElementById('bib-loja-painel');
+  if (!painel) return;
+  const comprados = S.livrosComprados || [];
+  const total = Object.keys(LIVROS).length;
+  const temTodos = comprados.length >= total;
+
+  let html = `<div id="bib-loja-card"><div id="bib-loja-topo"><h2>🛍️ Loja de Livros</h2><div id="bib-loja-moedas">🪙 ${S.moedas || 0}</div></div><div id="bib-loja-lista">`;
+  const ordenados = Object.entries(LIVROS).sort((a, b) => a[1].nome.localeCompare(b[1].nome, 'pt-BR'));
+
+  ordenados.forEach(([id, L]) => {
+    const jaTem = comprados.includes(id);
+    const podeComprar = (S.moedas || 0) >= L.preco;
+    const classes = ['bib-loja-item', jaTem ? 'comprado' : '', (!jaTem && !podeComprar) ? 'sem-moedas' : ''].filter(Boolean).join(' ');
+    html += `
+      <div class="${classes}" data-id="${id}">
+        <div class="bib-loja-capa" style="background:linear-gradient(135deg, ${L.cor} 0%, ${ajustarCor(L.cor, -25)} 60%, ${L.cor} 100%); --bib-cor2:${L.cor2 || '#d4af37'};"></div>
+        <div class="bib-loja-info"><div class="bib-loja-nome">${L.nome}</div><div class="bib-loja-autor">${L.autor}</div>${jaTem ? `<div class="bib-loja-preco comprado">✓ COMPRADO</div>` : `<div class="bib-loja-preco">🪙 ${L.preco}</div>`}</div>
+      </div>`;
+  });
+
+  html += `</div><div id="bib-loja-rodape"><div id="bib-loja-progresso">📚 ${comprados.length} / ${total} livros na coleção${temTodos ? ' — COMPLETA! 🎉' : ''}</div><button id="bib-loja-fechar">Fechar</button></div></div>`;
+  painel.innerHTML = html;
+
+  setTimeout(() => {
+    painel.querySelectorAll('.bib-loja-item').forEach(el => el.onclick = () => comprarLivro(el.dataset.id));
+    const btnFechar = document.getElementById('bib-loja-fechar');
+    if (btnFechar) btnFechar.onclick = () => {
+      painel.remove();
+      const bib = document.getElementById('biblioteca');
+      if (bib) desenharEstante(bib);
+    };
+    painel.onclick = (e) => {
+      if (e.target === painel) {
+        painel.remove();
+        const bib = document.getElementById('biblioteca');
+        if (bib) desenharEstante(bib);
+      }
+    };
+  }, 50);
+}
+
+function comprarLivro(id) {
+  const L = LIVROS[id];
+  if (!L) return;
+  const comprados = S.livrosComprados || [];
+  if (comprados.includes(id)) { SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sine', 0.1); toastCompra('Você já tem esse livro! 📚'); return; }
+  if ((S.moedas || 0) < L.preco) { SOM.melodia([N.DO_BAIXO, N.DO_BAIXO], 0.1, 'sawtooth', 0.12); toastCompra('Moedas insuficientes... 😢'); return; }
+
+  S.moedas -= L.preco; comprados.push(id); S.livrosComprados = comprados; save();
+  SOM.melodia([N.DO, N.MI, N.SOL, N.DO2], 0.08, 'sine', 0.12); vib([30, 40, 30]);
+  toastCompra(`📚 ${L.nome} comprado!`);
+  renderizarLojaLivros();
+  const bib = document.getElementById('biblioteca');
+  if (bib) desenharEstante(bib);
+}
+
+function toastCompra(txt) {
+  const el = document.createElement('div');
+  el.className = 'bib-toast-compra'; el.textContent = txt;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1600);
+}
