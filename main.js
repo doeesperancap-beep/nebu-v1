@@ -3,11 +3,17 @@ function foodTick() {
   prefs();
 }
 
+// --- INICIALIZAÇÃO ---
 prefs();
 aplicarVisual();
-if (!S.modo) setTimeout(modoPanel, 400);
-else iniciarModo();
 
+if (!S.modo) {
+  setTimeout(modoPanel, 400);
+} else {
+  iniciarModo();
+}
+
+// --- SAUDAÇÃO ---
 (() => {
   const d = new Date(), h = d.getHours(), k = d.toDateString();
   if (awayAtBoot > (S.pers === 'carinhosa' ? 60 : 180)) say('Que saudade! 💗');
@@ -16,6 +22,7 @@ else iniciarModo();
   if (!navigator.onLine) say('Sem internet... 📵');
 })();
 
+// --- LOOP DE TEMPO ---
 setInterval(() => {
   decay(5 / 60);
   sickTick();
@@ -26,6 +33,7 @@ setInterval(() => {
     set(baseMood(), 0);
 }, 5000);
 
+// --- PAUSA EM SEGUNDO PLANO ---
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -42,7 +50,7 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-/* ============ AVISO DE ATUALIZAÇÃO ============ */
+// --- AVISO DE ATUALIZAÇÃO ---
 (function checkVersion() {
   const VERSAO_KEY = 'nebula-versao-vista';
   const metaTag = document.querySelector('meta[name="version"]');
