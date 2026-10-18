@@ -26,6 +26,8 @@ function pickStyle() {
 }
 
 let dancing = 0;
+let gOn = 0, gx = .5; // <- MUDANÇA IMPORTANTE AQUI (tava faltando!)
+
 function startDance(sec = 10) {
   if (dancing || gOn) return;
   dancing = 1;
@@ -60,7 +62,6 @@ function joyTick() {
 }
 
 /* ============ 10. MINIGAMES ============ */
-let gOn = 0, gx = .5;
 
 function startGame() {
   P.classList.remove('on');
