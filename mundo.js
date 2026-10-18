@@ -144,4 +144,55 @@ function mostrarBalao(texto) {
   b.textContent = texto;
   b.classList.add('on');
   clearTimeout(window._balaoTimer);
-  window._bala
+  window._balaoTimer = setTimeout(() => b.classList.remove('on'), 2200);
+}
+
+function clicarPredio(id) {
+  const p = CIDADE_PREDIOS[id];
+  if (!p) return;
+  mostrarBalao(p.fala);
+  setTimeout(() => {
+    panel(`<h3>${p.nome}</h3><p style="opacity:.7">Em breve ✨</p>`);
+  }, 1200);
+}
+
+/* ============ CONECTAR CIDADE ============ */
+function painelConectar() {
+  panel(
+    '<h3>🔗 Conectar Cidade</h3>' +
+    `<p style="font-size:14px;opacity:.8;line-height:1.5">
+      O ID desta Nébula é:<br>
+      <code style="background:#ffffff20;padding:6px 10px;border-radius:6px;font-size:14px;display:inline-block;margin-top:6px">${S.id || 'sem ID'}</code>
+    </p>` +
+    '<p style="font-size:14px;opacity:.8;line-height:1.5;margin-top:14px">' +
+      'Cole o ID da Cidade pra conectar:' +
+    '</p>' +
+    '<input id="idCidade" type="text" placeholder="Ex: CITY-XXXX" maxlength="20" ' +
+      'style="width:100%;padding:12px;border-radius:12px;border:0;font-size:15px;' +
+      'background:#ffffff1a;color:#fff;box-sizing:border-box;margin:8px 0">' +
+    '<button id="btnConectar">Conectar</button>' +
+    '<p style="font-size:12px;opacity:.5;margin-top:12px">' +
+      '🔜 Em breve: conexão real via internet!' +
+    '</p>'
+  );
+
+  setTimeout(() => {
+    const btn = document.getElementById('btnConectar');
+    const inp = document.getElementById('idCidade');
+    if (!btn) return;
+    btn.onclick = () => {
+      const id = (inp.value || '').trim().toUpperCase();
+      if (!id) {
+        inp.style.background = '#ff000044';
+        return;
+      }
+      S.conectado = true;
+      S.cidadeId = id;
+      save();
+      say('Conectada! ✨');
+      salvarNoFirebase();
+      P.classList.remove('on');
+      setTimeout(mundo, 400);
+    };
+  }, 100);
+}
