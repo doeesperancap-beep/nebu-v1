@@ -478,4 +478,12 @@ function startDino() {
 
     x.textAlign = 'right';
     x.font = '14px sans-serif';
-    x.fillStyle = '#5d
+    x.fillStyle = '#5d4f9e';
+    x.fillText('🏆 ' + recordeNome + ' — ' + recordePontos, c.width - 20, 40);
+
+    if (pontos > recordePontos && recordePontos > 0) {
+      x.fillStyle = '#2e6b52';
+      x.fillText('🎉 batendo o recorde!', c.width - 20, 62);
+    }
+  }, 40);
+}
